@@ -1,0 +1,42 @@
+parameters:
+    mailer.option_name: sympress_mailer_settings
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    SymPress\Mailer\:
+        resource: '../src/'
+        exclude:
+            - '../src/MailerBundle.php'
+            - '../src/Config/MailerSettings.php'
+            - '../src/Config/ConnectionConfig.php'
+            - '../src/Config/RateLimitConfig.php'
+            - '../src/Message/WordPressMail.php'
+            - '../src/Value/SendResult.php'
+
+    SymPress\Mailer\Config\SettingsRepositoryInterface:
+        alias: SymPress\Mailer\Config\WordPressSettingsRepository
+
+    SymPress\Mailer\Application\MailerInterface:
+        alias: SymPress\Mailer\Application\MailerService
+
+    SymPress\Mailer\Message\EmailBodyProcessorInterface:
+        alias: SymPress\Mailer\Message\NullEmailBodyProcessor
+
+    SymPress\Mailer\Config\WordPressSettingsRepository:
+        arguments:
+            $optionName: '%mailer.option_name%'
+
+    SymPress\Mailer\Hook\WordPressMailerBridge:
+        tags:
+            - { name: kernel.hook, hook: 'pre_wp_mail', method: send, type: filter, priority: 1, accepted_args: 2 }
+
+    SymPress\Mailer\Admin\AdminPage:
+        tags:
+            - { name: kernel.hook, hook: 'admin_menu', method: register }
+            - { name: kernel.hook, hook: 'network_admin_menu', method: register }
+            - { name: kernel.hook, hook: 'admin_post_sympress_mailer_save_settings', method: saveSettings }
+            - { name: kernel.hook, hook: 'admin_post_sympress_mailer_send_test', method: sendTest }

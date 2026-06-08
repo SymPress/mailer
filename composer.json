@@ -1,0 +1,100 @@
+{
+    "name": "sympress/mailer",
+    "description": "Core Symfony Mailer powered WordPress mail plugin for the SymPress kernel.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Brian Schäffner",
+            "email": "brian.schaeffner@sympress.de",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.5",
+        "ext-json": "*",
+        "symfony/mailer": "^8.1",
+        "symfony/mime": "^8.1",
+        "sympress/assets": "@dev",
+        "sympress/kernel": "@dev"
+    },
+    "require-dev": {
+        "brain/monkey": "^2",
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
+        "friendsofphp/php-cs-fixer": "^3.94",
+        "inpsyde/php-coding-standards": "^2.0",
+        "mockery/mockery": "^1.6",
+        "php-stubs/wordpress-stubs": ">=7.0@stable",
+        "phpstan/extension-installer": "^1.4",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^10.5",
+        "szepeviktor/phpstan-wordpress": "^2.0",
+        "symfony/var-dumper": "^8.1"
+    },
+    "suggest": {
+        "symfony/amazon-mailer": "Adds Amazon SES API and SMTP DSN support.",
+        "symfony/brevo-mailer": "Adds Brevo API and SMTP DSN support.",
+        "symfony/google-mailer": "Adds Gmail SMTP DSN support for development and small sites.",
+        "symfony/mailgun-mailer": "Adds Mailgun API and SMTP DSN support.",
+        "symfony/mailjet-mailer": "Adds Mailjet API and SMTP DSN support.",
+        "symfony/mailer-send-mailer": "Adds MailerSend API and SMTP DSN support.",
+        "symfony/mailtrap-mailer": "Adds Mailtrap live and sandbox DSN support.",
+        "symfony/microsoft-graph-mailer": "Adds Microsoft Graph DSN support for Outlook and Microsoft 365.",
+        "symfony/postmark-mailer": "Adds Postmark API and SMTP DSN support.",
+        "symfony/resend-mailer": "Adds Resend API and SMTP DSN support.",
+        "symfony/sendgrid-mailer": "Adds SendGrid API and SMTP DSN support."
+    },
+    "autoload": {
+        "psr-4": {
+            "SymPress\\Mailer\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SymPress\\Mailer\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit --no-coverage",
+        "test:unit": "phpunit --no-coverage --testsuite Unit",
+        "test:coverage": "phpunit --coverage-html coverage-html",
+        "cs:analyze": "phpstan analyse -c phpstan.neon.dist --no-progress",
+        "cs:style": "php-cs-fixer fix --dry-run --diff --using-cache=no --config=.php-cs-fixer.dist.php",
+        "cs:style:fix": "php-cs-fixer fix --using-cache=no --config=.php-cs-fixer.dist.php",
+        "cs:audit": "phpcs --standard=phpcs.xml.dist",
+        "cs:audit:fix": "phpcbf --standard=phpcs.xml.dist",
+        "cs": [
+            "@cs:style",
+            "@cs:audit"
+        ],
+        "cs:fix": [
+            "@cs:style:fix",
+            "@cs:audit"
+        ]
+    },
+    "config": {
+        "sort-packages": true,
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "./../*",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
+    "extra": {
+        "wordpress-install-dir": "vendor/wordpress/wordpress",
+        "kernel": {
+            "bundle": "SymPress\\Mailer\\MailerBundle",
+            "entry": "mailer/mailer.php"
+        }
+    }
+}

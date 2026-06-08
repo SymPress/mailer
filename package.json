@@ -1,0 +1,24 @@
+{
+    "name": "sympress-mailer",
+    "version": "1.0.0",
+    "description": "Admin assets for the SymPress Mailer WordPress plugin.",
+    "license": "GPL-2.0-or-later",
+    "private": true,
+    "browserslist": [
+        "Last 2 versions"
+    ],
+    "devDependencies": {
+        "@symfony/webpack-encore": "^4.6.1",
+        "css-loader": "^7.1.2",
+        "mini-css-extract-plugin": "^2.9.4",
+        "ts-loader": "9.5.1",
+        "typescript": "^5.4.3",
+        "webpack": "^5",
+        "webpack-cli": "^4"
+    },
+    "scripts": {
+        "build": "encore production",
+        "dev": "encore dev",
+        "watch": "encore dev --watch"
+    }
+}

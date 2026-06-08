@@ -1,0 +1,10 @@
+/vendor/
+/node_modules/
+/.phpunit.cache/
+/coverage/
+/coverage-html/
+/.php-cs-fixer.cache
+/.phpstan-result-cache
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
