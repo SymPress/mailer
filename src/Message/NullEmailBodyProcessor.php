@@ -17,6 +17,7 @@ final class NullEmailBodyProcessor implements EmailBodyProcessorInterface
         MailerSettings $settings,
         string $messageId,
     ): string {
+
         return $body;
     }
 }

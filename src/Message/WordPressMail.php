@@ -30,30 +30,26 @@ final readonly class WordPressMail
     ) {
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
         return [
-            'to' => $this->to,
-            'subject' => $this->subject,
-            'message' => $this->message,
-            'headers' => $this->headers,
-            'attachments' => $this->attachments,
-            'from' => $this->from,
-            'cc' => $this->cc,
-            'bcc' => $this->bcc,
-            'reply_to' => $this->replyTo,
+            'to'           => $this->to,
+            'subject'      => $this->subject,
+            'message'      => $this->message,
+            'headers'      => $this->headers,
+            'attachments'  => $this->attachments,
+            'from'         => $this->from,
+            'cc'           => $this->cc,
+            'bcc'          => $this->bcc,
+            'reply_to'     => $this->replyTo,
             'content_type' => $this->contentType,
-            'charset' => $this->charset,
-            'source' => $this->source,
+            'charset'      => $this->charset,
+            'source'       => $this->source,
         ];
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
+    /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self
     {
         return new self(
@@ -72,17 +68,13 @@ final readonly class WordPressMail
         );
     }
 
-    /**
-     * @param mixed $value
-     */
+    /** @param mixed $value */
     private static function string($value): string
     {
         return is_scalar($value) ? (string) $value : '';
     }
 
-    /**
-     * @param mixed $value
-     */
+    /** @param mixed $value */
     private static function nullableString($value): ?string
     {
         $value = self::string($value);
@@ -109,9 +101,11 @@ final readonly class WordPressMail
         foreach ($value as $item) {
             $string = self::string($item);
 
-            if ($string !== '') {
-                $list[] = $string;
+            if ($string === '') {
+                continue;
             }
+
+            $list[] = $string;
         }
 
         return $list;

@@ -6,9 +6,7 @@ namespace SymPress\Mailer\Message;
 
 final class WordPressMailParser
 {
-    /**
-     * @param array<string, mixed> $atts
-     */
+    /** @param array<string, mixed> $atts */
     public function parse(array $atts): WordPressMail
     {
         $headers = $this->parseHeaders($atts['headers'] ?? []);
@@ -44,13 +42,13 @@ final class WordPressMailParser
     private function parseHeaders($headers): array
     {
         $parsed = [
-            'headers' => [],
-            'from' => null,
-            'cc' => [],
-            'bcc' => [],
-            'reply_to' => [],
+            'headers'      => [],
+            'from'         => null,
+            'cc'           => [],
+            'bcc'          => [],
+            'reply_to'     => [],
             'content_type' => null,
-            'charset' => null,
+            'charset'      => null,
         ];
 
         foreach ($this->headerLines($headers) as $line) {
@@ -78,7 +76,6 @@ final class WordPressMailParser
     }
 
     /**
-     * @param string $value
      * @param array{
      *     headers: array<string, list<string>>,
      *     from: ?string,
@@ -101,9 +98,11 @@ final class WordPressMailParser
 
             [$name, $partValue] = array_map('trim', explode('=', $part, 2));
 
-            if (strtolower($name) === 'charset') {
-                $parsed['charset'] = trim($partValue, '"\'');
+            if (strtolower($name) !== 'charset') {
+                continue;
             }
+
+            $parsed['charset'] = trim($partValue, '"\'');
         }
 
         return null;
@@ -135,9 +134,11 @@ final class WordPressMailParser
                 foreach ($value as $nested) {
                     $line = $this->scalar($nested);
 
-                    if ($line !== '') {
-                        $lines[] = $line;
+                    if ($line === '') {
+                        continue;
                     }
+
+                    $lines[] = $line;
                 }
 
                 continue;
@@ -145,9 +146,11 @@ final class WordPressMailParser
 
             $line = $this->scalar($value);
 
-            if ($line !== '') {
-                $lines[] = $line;
+            if ($line === '') {
+                continue;
             }
+
+            $lines[] = $line;
         }
 
         return $lines;
@@ -172,9 +175,11 @@ final class WordPressMailParser
         foreach ($value as $address) {
             $address = $this->scalar($address);
 
-            if ($address !== '') {
-                $addresses[] = $address;
+            if ($address === '') {
+                continue;
             }
+
+            $addresses[] = $address;
         }
 
         return $addresses;
@@ -199,17 +204,17 @@ final class WordPressMailParser
         foreach ($value as $attachment) {
             $attachment = $this->scalar($attachment);
 
-            if ($attachment !== '') {
-                $attachments[] = $attachment;
+            if ($attachment === '') {
+                continue;
             }
+
+            $attachments[] = $attachment;
         }
 
         return $attachments;
     }
 
-    /**
-     * @param mixed $value
-     */
+    /** @param mixed $value */
     private function scalar($value): string
     {
         return is_scalar($value) ? trim((string) $value) : '';

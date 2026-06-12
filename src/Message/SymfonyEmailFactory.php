@@ -78,9 +78,11 @@ final readonly class SymfonyEmailFactory
         }
 
         foreach ($mail->attachments as $attachment) {
-            if (is_readable($attachment)) {
-                $email->attachFromPath($attachment);
+            if (!is_readable($attachment)) {
+                continue;
             }
+
+            $email->attachFromPath($attachment);
         }
 
         $email->getHeaders()->addTextHeader('X-SymPress-Mailer-Log-ID', $logId);
