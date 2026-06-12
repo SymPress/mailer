@@ -15,9 +15,7 @@ final readonly class RateLimitConfig
     ) {
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
+    /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self
     {
         $interval = WordPressArray::string($data['interval'] ?? 'minute');
@@ -33,14 +31,12 @@ final readonly class RateLimitConfig
         );
     }
 
-    /**
-     * @return array<string, scalar>
-     */
+    /** @return array<string, scalar> */
     public function toArray(): array
     {
         return [
-            'enabled' => $this->enabled,
-            'limit' => $this->limit,
+            'enabled'  => $this->enabled,
+            'limit'    => $this->limit,
             'interval' => $this->interval,
         ];
     }

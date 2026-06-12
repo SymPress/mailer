@@ -59,9 +59,7 @@ final readonly class MailerSettings
     ) {
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
+    /** @param array<string, mixed> $data */
     public static function fromArray(array $data): self
     {
         $connections = self::connections($data['connections'] ?? []);
@@ -153,54 +151,52 @@ final readonly class MailerSettings
         return in_array($notification, $this->disabledNotifications, true);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function toArray(): array
     {
         return [
-            'enabled' => $this->enabled,
-            'default_connection' => $this->defaultConnection,
-            'backup_connection_id' => $this->backupConnection,
-            'connections' => array_map(
+            'enabled'                      => $this->enabled,
+            'default_connection'           => $this->defaultConnection,
+            'backup_connection_id'         => $this->backupConnection,
+            'connections'                  => array_map(
                 static fn (ConnectionConfig $connection): array => $connection->toArray(),
                 $this->connections,
             ),
-            'logging_enabled' => $this->loggingEnabled,
-            'save_body' => $this->saveBody,
-            'save_attachments' => $this->saveAttachments,
-            'open_tracking' => $this->openTracking,
-            'click_tracking' => $this->clickTracking,
-            'weekly_summary' => $this->weeklySummary,
-            'reports_enabled' => $this->reportsEnabled,
-            'smart_routing_enabled' => $this->smartRoutingEnabled,
-            'rate_limit' => $this->rateLimit->toArray(),
-            'routing_rules' => $this->routingRulesToArray(),
-            'alert_on_failure' => $this->alertOnFailure,
-            'alert_on_hard_bounce' => $this->alertOnHardBounce,
-            'alert_emails' => $this->alertEmails,
-            'alert_webhooks' => $this->alertWebhooks,
-            'slack_webhook' => $this->slackWebhook,
-            'discord_webhook' => $this->discordWebhook,
-            'teams_webhook' => $this->teamsWebhook,
-            'twilio_account_sid' => $this->twilioAccountSid,
-            'twilio_auth_token' => $this->twilioAuthToken,
-            'twilio_from' => $this->twilioFrom,
-            'twilio_to' => $this->twilioTo,
-            'push_connection_name' => $this->pushConnectionName,
-            'whatsapp_access_token' => $this->whatsappAccessToken,
+            'logging_enabled'              => $this->loggingEnabled,
+            'save_body'                    => $this->saveBody,
+            'save_attachments'             => $this->saveAttachments,
+            'open_tracking'                => $this->openTracking,
+            'click_tracking'               => $this->clickTracking,
+            'weekly_summary'               => $this->weeklySummary,
+            'reports_enabled'              => $this->reportsEnabled,
+            'smart_routing_enabled'        => $this->smartRoutingEnabled,
+            'rate_limit'                   => $this->rateLimit->toArray(),
+            'routing_rules'                => $this->routingRulesToArray(),
+            'alert_on_failure'             => $this->alertOnFailure,
+            'alert_on_hard_bounce'         => $this->alertOnHardBounce,
+            'alert_emails'                 => $this->alertEmails,
+            'alert_webhooks'               => $this->alertWebhooks,
+            'slack_webhook'                => $this->slackWebhook,
+            'discord_webhook'              => $this->discordWebhook,
+            'teams_webhook'                => $this->teamsWebhook,
+            'twilio_account_sid'           => $this->twilioAccountSid,
+            'twilio_auth_token'            => $this->twilioAuthToken,
+            'twilio_from'                  => $this->twilioFrom,
+            'twilio_to'                    => $this->twilioTo,
+            'push_connection_name'         => $this->pushConnectionName,
+            'whatsapp_access_token'        => $this->whatsappAccessToken,
             'whatsapp_business_account_id' => $this->whatsappBusinessAccountId,
-            'whatsapp_phone_number_id' => $this->whatsappPhoneNumberId,
-            'whatsapp_to' => $this->whatsappTo,
-            'forward_emails' => $this->forwardEmails,
-            'disabled_notifications' => $this->disabledNotifications,
-            'do_not_send' => $this->doNotSend,
-            'hide_announcements' => $this->hideAnnouncements,
-            'hide_delivery_errors' => $this->hideDeliveryErrors,
-            'hide_dashboard_widget' => $this->hideDashboardWidget,
-            'allow_usage_tracking' => $this->allowUsageTracking,
-            'optimize_sending' => $this->optimizeSending,
-            'uninstall_data' => $this->uninstallData,
+            'whatsapp_phone_number_id'     => $this->whatsappPhoneNumberId,
+            'whatsapp_to'                  => $this->whatsappTo,
+            'forward_emails'               => $this->forwardEmails,
+            'disabled_notifications'       => $this->disabledNotifications,
+            'do_not_send'                  => $this->doNotSend,
+            'hide_announcements'           => $this->hideAnnouncements,
+            'hide_delivery_errors'         => $this->hideDeliveryErrors,
+            'hide_dashboard_widget'        => $this->hideDashboardWidget,
+            'allow_usage_tracking'         => $this->allowUsageTracking,
+            'optimize_sending'             => $this->optimizeSending,
+            'uninstall_data'               => $this->uninstallData,
         ];
     }
 
@@ -246,17 +242,17 @@ final readonly class MailerSettings
         $rules = [];
 
         foreach ($data as $rule) {
-            if (is_array($rule)) {
-                $rules[] = $rule;
+            if (!is_array($rule)) {
+                continue;
             }
+
+            $rules[] = $rule;
         }
 
         return $rules;
     }
 
-    /**
-     * @return list<array<string, mixed>>
-     */
+    /** @return list<array<string, mixed>> */
     private function routingRulesToArray(): array
     {
         $rules = [];
@@ -267,12 +263,16 @@ final readonly class MailerSettings
                 continue;
             }
 
-            if (is_object($rule) && method_exists($rule, 'toArray')) {
-                $array = $rule->toArray();
-                if (is_array($array)) {
-                    $rules[] = $array;
-                }
+            if (!is_object($rule) || !method_exists($rule, 'toArray')) {
+                continue;
             }
+
+            $array = $rule->toArray();
+            if (!is_array($array)) {
+                continue;
+            }
+
+            $rules[] = $array;
         }
 
         return $rules;

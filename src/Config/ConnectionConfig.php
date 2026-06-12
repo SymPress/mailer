@@ -33,9 +33,7 @@ final readonly class ConnectionConfig
     ) {
     }
 
-    /**
-     * @param array<string, mixed> $data
-     */
+    /** @param array<string, mixed> $data */
     public static function fromArray(array $data, string $fallbackId = 'primary'): self
     {
         $id = WordPressArray::string($data['id'] ?? $fallbackId);
@@ -65,33 +63,31 @@ final readonly class ConnectionConfig
         );
     }
 
-    /**
-     * @return array<string, scalar>
-     */
+    /** @return array<string, scalar> */
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'provider' => $this->provider,
-            'dsn' => $this->dsn,
-            'host' => $this->host,
-            'port' => $this->port,
-            'username' => $this->username,
-            'password' => $this->password,
-            'encryption' => $this->encryption,
-            'api_key' => $this->apiKey,
-            'api_secret' => $this->apiSecret,
-            'domain' => $this->domain,
-            'region' => $this->region,
-            'tenant_id' => $this->tenantId,
-            'from_email' => $this->fromEmail,
-            'from_name' => $this->fromName,
-            'force_from' => $this->forceFrom,
+            'id'              => $this->id,
+            'name'            => $this->name,
+            'provider'        => $this->provider,
+            'dsn'             => $this->dsn,
+            'host'            => $this->host,
+            'port'            => $this->port,
+            'username'        => $this->username,
+            'password'        => $this->password,
+            'encryption'      => $this->encryption,
+            'api_key'         => $this->apiKey,
+            'api_secret'      => $this->apiSecret,
+            'domain'          => $this->domain,
+            'region'          => $this->region,
+            'tenant_id'       => $this->tenantId,
+            'from_email'      => $this->fromEmail,
+            'from_name'       => $this->fromName,
+            'force_from'      => $this->forceFrom,
             'force_from_name' => $this->forceFromName,
-            'return_path' => $this->returnPath,
-            'auto_tls' => $this->autoTls,
-            'verify_peer' => $this->verifyPeer,
+            'return_path'     => $this->returnPath,
+            'auto_tls'        => $this->autoTls,
+            'verify_peer'     => $this->verifyPeer,
         ];
     }
 
