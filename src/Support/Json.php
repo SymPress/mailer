@@ -6,9 +6,7 @@ namespace SymPress\Mailer\Support;
 
 final class Json
 {
-    /**
-     * @param mixed $value
-     */
+    /** @param mixed $value */
     public static function encode($value): string
     {
         if (function_exists('wp_json_encode')) {
@@ -20,9 +18,7 @@ final class Json
         return json_encode($value, JSON_THROW_ON_ERROR);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public static function object(string $json): array
     {
         if ($json === '') {
@@ -38,9 +34,7 @@ final class Json
         return is_array($decoded) ? $decoded : [];
     }
 
-    /**
-     * @return list<mixed>
-     */
+    /** @return list<mixed> */
     public static function list(string $json): array
     {
         $decoded = self::object($json);

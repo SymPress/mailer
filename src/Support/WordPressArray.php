@@ -6,9 +6,7 @@ namespace SymPress\Mailer\Support;
 
 final class WordPressArray
 {
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public static function post(): array
     {
         $post = $_POST;
@@ -20,9 +18,7 @@ final class WordPressArray
         return is_array($post) ? $post : [];
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public static function get(): array
     {
         $get = $_GET;
@@ -34,9 +30,7 @@ final class WordPressArray
         return is_array($get) ? $get : [];
     }
 
-    /**
-     * @param mixed $value
-     */
+    /** @param mixed $value */
     public static function string($value): string
     {
         if (is_scalar($value)) {
@@ -65,25 +59,23 @@ final class WordPressArray
         foreach ($value as $item) {
             $string = self::string($item);
 
-            if ($string !== '') {
-                $strings[] = $string;
+            if ($string === '') {
+                continue;
             }
+
+            $strings[] = $string;
         }
 
         return array_values(array_unique($strings));
     }
 
-    /**
-     * @param mixed $value
-     */
+    /** @param mixed $value */
     public static function bool($value): bool
     {
         return in_array($value, [true, 1, '1', 'yes', 'on', 'true'], true);
     }
 
-    /**
-     * @param mixed $value
-     */
+    /** @param mixed $value */
     public static function int($value, int $default = 0): int
     {
         if (is_int($value)) {
