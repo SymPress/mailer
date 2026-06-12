@@ -22,9 +22,7 @@ final readonly class MailerAdminAssets implements AssetProviderInterface
     ) {
     }
 
-    /**
-     * @return iterable<Asset>
-     */
+    /** @return iterable<Asset> */
     public function assets(): iterable
     {
         $locations = $this->config->locations();
@@ -62,9 +60,7 @@ final readonly class MailerAdminAssets implements AssetProviderInterface
             ->defer();
     }
 
-    /**
-     * @param callable(): bool $canEnqueue
-     */
+    /** @param callable(): bool $canEnqueue */
     private function prepare(Asset $asset, callable $canEnqueue): Asset
     {
         $asset
