@@ -225,34 +225,32 @@ final readonly class AdminPage
         echo '</section>';
     }
 
-    /**
-     * @param array<string, mixed> $post
-     */
+    /** @param array<string, mixed> $post */
     private function connectionFromPost(array $post): ConnectionConfig
     {
         return ConnectionConfig::fromArray(
             [
-                'id' => 'primary',
-                'name' => 'Primary',
-                'provider' => $post['provider'] ?? 'smtp',
-                'dsn' => $post['dsn'] ?? '',
-                'host' => $post['host'] ?? '',
-                'port' => $post['port'] ?? 587,
-                'username' => $post['username'] ?? '',
-                'password' => $post['password'] ?? '',
-                'encryption' => $post['encryption'] ?? 'tls',
-                'api_key' => $post['api_key'] ?? '',
-                'api_secret' => $post['api_secret'] ?? '',
-                'domain' => $post['domain'] ?? '',
-                'region' => $post['region'] ?? '',
-                'tenant_id' => $post['tenant_id'] ?? '',
-                'from_email' => $post['from_email'] ?? '',
-                'from_name' => $post['from_name'] ?? '',
-                'force_from' => $post['force_from'] ?? false,
+                'id'              => 'primary',
+                'name'            => 'Primary',
+                'provider'        => $post['provider'] ?? 'smtp',
+                'dsn'             => $post['dsn'] ?? '',
+                'host'            => $post['host'] ?? '',
+                'port'            => $post['port'] ?? 587,
+                'username'        => $post['username'] ?? '',
+                'password'        => $post['password'] ?? '',
+                'encryption'      => $post['encryption'] ?? 'tls',
+                'api_key'         => $post['api_key'] ?? '',
+                'api_secret'      => $post['api_secret'] ?? '',
+                'domain'          => $post['domain'] ?? '',
+                'region'          => $post['region'] ?? '',
+                'tenant_id'       => $post['tenant_id'] ?? '',
+                'from_email'      => $post['from_email'] ?? '',
+                'from_name'       => $post['from_name'] ?? '',
+                'force_from'      => $post['force_from'] ?? false,
                 'force_from_name' => $post['force_from_name'] ?? false,
-                'return_path' => $post['return_path'] ?? false,
-                'auto_tls' => $post['auto_tls'] ?? false,
-                'verify_peer' => $post['verify_peer'] ?? false,
+                'return_path'     => $post['return_path'] ?? false,
+                'auto_tls'        => $post['auto_tls'] ?? false,
+                'verify_peer'     => $post['verify_peer'] ?? false,
             ],
             'primary',
         );
@@ -307,9 +305,7 @@ final readonly class AdminPage
         echo '</label>';
     }
 
-    /**
-     * @param array<string, string> $options
-     */
+    /** @param array<string, string> $options */
     private function select(string $name, string $label, string $value, array $options): void
     {
         echo '<label class="spm-field"><span>' . $this->esc($label) . '</span>';
@@ -323,32 +319,36 @@ final readonly class AdminPage
 
     private function assertCapability(): void
     {
-        if (function_exists('current_user_can') && !current_user_can('manage_options')) {
-            if (function_exists('wp_die')) {
-                wp_die('Insufficient permissions.');
-            }
-
-            throw new \RuntimeException('Insufficient permissions.');
+        if (!function_exists('current_user_can') || current_user_can('manage_options')) {
+            return;
         }
+
+        if (function_exists('wp_die')) {
+            wp_die('Insufficient permissions.');
+        }
+
+        throw new \RuntimeException('Insufficient permissions.');
     }
 
     private function checkNonce(string $action): void
     {
-        if (function_exists('check_admin_referer')) {
-            check_admin_referer($action);
+        if (!function_exists('check_admin_referer')) {
+            return;
         }
+
+        check_admin_referer($action);
     }
 
     private function nonce(string $action): void
     {
-        if (function_exists('wp_nonce_field')) {
-            wp_nonce_field($action);
+        if (!function_exists('wp_nonce_field')) {
+            return;
         }
+
+        wp_nonce_field($action);
     }
 
-    /**
-     * @param array<string, string> $args
-     */
+    /** @param array<string, string> $args */
     private function redirect(string $page, array $args = []): void
     {
         $url = $this->adminUrl('admin.php', ['page' => $page, ...$args]);
@@ -362,9 +362,7 @@ final readonly class AdminPage
         exit;
     }
 
-    /**
-     * @param array<string, string> $args
-     */
+    /** @param array<string, string> $args */
     private function adminUrl(string $path, array $args = []): string
     {
         $url = function_exists('admin_url') ? admin_url($path) : '/wp-admin/' . ltrim($path, '/');
