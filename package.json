@@ -8,6 +8,8 @@
         "Last 2 versions"
     ],
     "devDependencies": {
+        "@babel/core": "^7.24.3",
+        "@babel/preset-env": "^7.24.3",
         "@symfony/webpack-encore": "^4.6.1",
         "css-loader": "^7.1.2",
         "mini-css-extract-plugin": "^2.9.4",
