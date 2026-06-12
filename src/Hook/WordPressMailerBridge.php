@@ -18,10 +18,7 @@ final readonly class WordPressMailerBridge
     ) {
     }
 
-    /**
-     * @param bool|null $return
-     * @param array<string, mixed> $atts
-     */
+    /** @param array<string, mixed> $atts */
     public function send(?bool $return, array $atts): ?bool
     {
         if ($return !== null || MailerRuntimeGuard::isInterceptionDisabled()) {

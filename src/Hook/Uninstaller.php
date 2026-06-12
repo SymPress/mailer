@@ -20,14 +20,14 @@ final class Uninstaller
             delete_option(self::OPTION_NAME);
         }
 
-        if (function_exists('delete_site_option')) {
-            delete_site_option(self::OPTION_NAME);
+        if (!function_exists('delete_site_option')) {
+            return;
         }
+
+        delete_site_option(self::OPTION_NAME);
     }
 
-    /**
-     * @return array<string, mixed>|null
-     */
+    /** @return array<string, mixed>|null */
     private static function settings(): ?array
     {
         $settings = null;
