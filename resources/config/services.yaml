@@ -8,14 +8,14 @@ services:
         public: false
 
     SymPress\Mailer\:
-        resource: '../src/'
+        resource: '../../src/'
         exclude:
-            - '../src/MailerBundle.php'
-            - '../src/Config/MailerSettings.php'
-            - '../src/Config/ConnectionConfig.php'
-            - '../src/Config/RateLimitConfig.php'
-            - '../src/Message/WordPressMail.php'
-            - '../src/Value/SendResult.php'
+            - '../../src/MailerBundle.php'
+            - '../../src/Config/MailerSettings.php'
+            - '../../src/Config/ConnectionConfig.php'
+            - '../../src/Config/RateLimitConfig.php'
+            - '../../src/Message/WordPressMail.php'
+            - '../../src/Value/SendResult.php'
 
     SymPress\Mailer\Config\SettingsRepositoryInterface:
         alias: SymPress\Mailer\Config\WordPressSettingsRepository
