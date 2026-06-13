@@ -15,14 +15,14 @@
         "ext-json": "*",
         "symfony/mailer": "^8.1",
         "symfony/mime": "^8.1",
-        "sympress/assets": "@dev",
-        "sympress/kernel": "@dev"
+        "sympress/assets": "dev-main",
+        "sympress/kernel": "dev-main"
     },
     "require-dev": {
         "brain/monkey": "^2",
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
         "friendsofphp/php-cs-fixer": "^3.94",
-        "sympress/coding-standards": "@dev",
+        "sympress/coding-standards": "dev-main",
         "mockery/mockery": "^1.6",
         "php-stubs/wordpress-stubs": ">=7.0@stable",
         "phpstan/extension-installer": "^1.4",
