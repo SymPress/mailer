@@ -1,5 +1,7 @@
 # SymPress Mailer
 
+[![PHP: ^8.5](https://img.shields.io/badge/php-%5E8.5-777bb4.svg)](composer.json) [![License: GPL-2.0-or-later](https://img.shields.io/badge/license-GPL--2.0--or--later-blue.svg)](LICENSE) [![Security Policy](https://img.shields.io/badge/security-policy-2ea44f.svg)](SECURITY.md)
+
 Core Symfony Mailer powered WordPress plugin for the SymPress kernel.
 
 ## Installation
