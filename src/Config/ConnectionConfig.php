@@ -30,6 +30,8 @@ final readonly class ConnectionConfig
         public bool $returnPath = false,
         public bool $autoTls = true,
         public bool $verifyPeer = true,
+        public string $keyStore = 'option',
+        public string $secretPrefix = '',
     ) {
     }
 
@@ -60,6 +62,8 @@ final readonly class ConnectionConfig
             returnPath: WordPressArray::bool($data['return_path'] ?? $data['returnPath'] ?? false),
             autoTls: WordPressArray::bool($data['auto_tls'] ?? $data['autoTls'] ?? true),
             verifyPeer: WordPressArray::bool($data['verify_peer'] ?? $data['verifyPeer'] ?? true),
+            keyStore: self::keyStore(WordPressArray::string($data['key_store'] ?? $data['keyStore'] ?? 'option')),
+            secretPrefix: self::secretPrefix(WordPressArray::string($data['secret_prefix'] ?? $data['secretPrefix'] ?? '')),
         );
     }
 
@@ -88,6 +92,8 @@ final readonly class ConnectionConfig
             'return_path'     => $this->returnPath,
             'auto_tls'        => $this->autoTls,
             'verify_peer'     => $this->verifyPeer,
+            'key_store'       => $this->keyStore,
+            'secret_prefix'   => $this->secretPrefix,
         ];
     }
 
@@ -97,5 +103,26 @@ final readonly class ConnectionConfig
         $slug = preg_replace('/[^a-z0-9_\-]+/', '-', $slug);
 
         return trim(is_string($slug) ? $slug : '', '-');
+    }
+
+    private static function keyStore(string $value): string
+    {
+        $store = self::slug($value) ?: 'option';
+
+        return match ($store) {
+            'encrypted-option', 'encryptedoption' => 'encrypted_option',
+            'wp-config', 'wpconfig', 'constant', 'constants' => 'wp_config',
+            'environment' => 'env',
+            'kernel-config', 'kernelconfig', 'filter' => 'config',
+            default => $store,
+        };
+    }
+
+    private static function secretPrefix(string $value): string
+    {
+        $value = strtoupper(trim($value));
+        $value = preg_replace('/[^A-Z0-9_]+/', '_', $value);
+
+        return trim(is_string($value) ? $value : '', '_');
     }
 }

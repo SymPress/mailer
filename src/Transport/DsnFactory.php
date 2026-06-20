@@ -5,11 +5,19 @@ declare(strict_types=1);
 namespace SymPress\Mailer\Transport;
 
 use SymPress\Mailer\Config\ConnectionConfig;
+use SymPress\Mailer\Secret\ConnectionSecretResolverInterface;
 
 final class DsnFactory
 {
+    public function __construct(
+        private ?ConnectionSecretResolverInterface $secretResolver = null,
+    ) {
+    }
+
     public function create(ConnectionConfig $connection): string
     {
+        $connection = $this->secretResolver?->resolve($connection) ?? $connection;
+
         if ($connection->dsn !== '') {
             return $connection->dsn;
         }

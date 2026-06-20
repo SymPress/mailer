@@ -58,4 +58,19 @@ final class MailerSettingsTest extends TestCase
         self::assertSame('sendgrid', $settings->defaultConnection()->provider);
         self::assertSame('key', $settings->defaultConnection()->apiKey);
     }
+
+    public function testNormalizesWpConfigSecretStoreAliases(): void
+    {
+        $settings = MailerSettings::fromArray(
+            [
+                'connection' => [
+                    'id'        => 'primary',
+                    'provider'  => 'smtp',
+                    'key_store' => 'wp-config',
+                ],
+            ],
+        );
+
+        self::assertSame('wp_config', $settings->defaultConnection()->keyStore);
+    }
 }
