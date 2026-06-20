@@ -1,5 +1,7 @@
 /vendor/
 /node_modules/
+/assets/
+/.sympress_asset_compiler.lock
 /.phpunit.cache/
 /coverage/
 /coverage-html/
