@@ -15,6 +15,7 @@ final class Json
             return is_string($encoded) ? $encoded : 'null';
         }
 
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.json_encode_json_encode -- Fallback when WordPress is not loaded.
         return json_encode($value, JSON_THROW_ON_ERROR);
     }
 
