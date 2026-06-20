@@ -125,7 +125,7 @@ final class WordPressMailParser
         $lines = [];
 
         foreach ($headers as $key => $value) {
-            if (is_string($key) && !is_int($key)) {
+            if (is_string($key)) {
                 $lines[] = sprintf('%s: %s', $key, $this->scalar($value));
                 continue;
             }
