@@ -12,6 +12,7 @@ final readonly class SymfonyEmailFactory
 {
     public function __construct(
         private EmailBodyProcessorInterface $bodyProcessor,
+        private AttachmentPolicyInterface $attachmentPolicy,
     ) {
     }
 
@@ -78,7 +79,8 @@ final readonly class SymfonyEmailFactory
         }
 
         foreach ($mail->attachments as $attachment) {
-            if (!is_readable($attachment)) {
+            if (!$this->attachmentPolicy->allowed($attachment)) {
+                $this->reportBlockedAttachment($attachment, $mail, $connection, $logId);
                 continue;
             }
 
@@ -92,6 +94,25 @@ final readonly class SymfonyEmailFactory
         }
 
         return $email;
+    }
+
+    private function reportBlockedAttachment(string $attachment, WordPressMail $mail, ConnectionConfig $connection, string $logId): void
+    {
+        if (!function_exists('do_action')) {
+            return;
+        }
+
+        $reason = 'Attachment was blocked by policy.';
+
+        if (method_exists($this->attachmentPolicy, 'rejectionReason')) {
+            $policyReason = $this->attachmentPolicy->rejectionReason($attachment);
+
+            if (is_string($policyReason) && $policyReason !== '') {
+                $reason = $policyReason;
+            }
+        }
+
+        do_action('sympress_mailer_attachment_blocked', $logId, $attachment, $reason, $mail, $connection);
     }
 
     private function from(WordPressMail $mail, ConnectionConfig $connection): string
