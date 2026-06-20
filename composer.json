@@ -13,6 +13,7 @@
     "require": {
         "php": "^8.5",
         "ext-json": "*",
+        "symfony/http-client": "^8.1",
         "symfony/mailer": "^8.1",
         "symfony/mime": "^8.1",
         "sympress/assets": "dev-main",
