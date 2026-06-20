@@ -8,34 +8,25 @@ use SymPress\Mailer\Application\TestEmailSender;
 use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Config\MailerSettings;
 use SymPress\Mailer\Config\SettingsRepositoryInterface;
+use SymPress\Mailer\Import\ConnectionImportService;
+use SymPress\Mailer\Provider\ProviderDefinition;
+use SymPress\Mailer\Provider\ProviderRegistryInterface;
 use SymPress\Mailer\Support\WordPressArray;
+use SymPress\Mailer\Validation\ConnectionHealthCheckerInterface;
+use SymPress\Mailer\Validation\ConnectionValidatorInterface;
 
 final readonly class AdminPage
 {
     private const string SLUG = 'sympress-mailer';
     private const string PRO_ENTRY = 'mailer-pro/mailer-pro.php';
 
-    private const array PROVIDERS = [
-        ['native', 'Default (none)', 'PHP'],
-        ['smtp', 'Other SMTP', 'SMTP'],
-        ['sendmail', 'Sendmail', 'Local'],
-        ['dsn', 'Symfony DSN', 'DSN'],
-        ['sendgrid', 'SendGrid', 'API'],
-        ['mailgun', 'Mailgun', 'API'],
-        ['postmark', 'Postmark', 'API'],
-        ['brevo', 'Brevo', 'API'],
-        ['resend', 'Resend', 'API'],
-        ['gmail', 'Google / Gmail', 'SMTP'],
-        ['ses', 'Amazon SES', 'API'],
-        ['microsoftgraph', '365 / Outlook', 'API'],
-        ['mailjet', 'Mailjet', 'API'],
-        ['mailersend', 'MailerSend', 'API'],
-        ['mailtrap', 'Mailtrap', 'API'],
-    ];
-
     public function __construct(
         private SettingsRepositoryInterface $settingsRepository,
         private TestEmailSender $testEmailSender,
+        private ProviderRegistryInterface $providers,
+        private ConnectionValidatorInterface $validator,
+        private ConnectionHealthCheckerInterface $healthChecker,
+        private ConnectionImportService $imports,
     ) {
     }
 
@@ -86,6 +77,13 @@ final readonly class AdminPage
 
         $this->chromeStart('Settings', $settings);
         $this->tabs($tab);
+        $this->adminNotices();
+
+        if ($tab === 'import') {
+            $this->importTab();
+            $this->chromeEnd();
+            return;
+        }
 
         echo '<form method="post" action="' . $this->attr($this->adminPostUrl()) . '">';
         echo '<input type="hidden" name="action" value="sympress_mailer_save_settings">';
@@ -151,6 +149,13 @@ final readonly class AdminPage
             $data['uninstall_data'] = WordPressArray::bool($post['uninstall_data'] ?? false);
         } else {
             $connection = $this->connectionFromPost($post);
+            $validation = $this->validator->validate($connection);
+
+            if (!$validation->valid()) {
+                $this->failValidation($validation->message());
+            }
+
+            $this->assertConnectionHealthy($connection);
             $data['enabled'] = WordPressArray::bool($post['enabled'] ?? false);
             $data['default_connection'] = 'primary';
             $data['connection'] = $connection->toArray();
@@ -158,7 +163,13 @@ final readonly class AdminPage
         }
 
         $this->settingsRepository->save(MailerSettings::fromArray($data));
-        $this->redirect(self::SLUG, ['tab' => $tab, 'updated' => '1']);
+        $args = ['tab' => $tab, 'updated' => '1'];
+
+        if ($tab === 'general') {
+            $args['health'] = 'ok';
+        }
+
+        $this->redirect(self::SLUG, $args);
     }
 
     public function sendTest(): void
@@ -177,6 +188,38 @@ final readonly class AdminPage
         $this->redirect(self::SLUG . '-tools', ['sympress_mailer_test' => $status]);
     }
 
+    public function importConnection(): void
+    {
+        if ($this->proPluginActive()) {
+            return;
+        }
+
+        $this->assertCapability();
+        $source = WordPressArray::string(WordPressArray::post()['source'] ?? '');
+        $this->checkNonce('sympress_mailer_import_connection_' . $source);
+
+        $candidate = $this->imports->find($source);
+
+        if ($candidate === null) {
+            $this->failValidation('No importable mailer connection was found for this source.');
+        }
+
+        $validation = $this->validator->validate($candidate->connection);
+
+        if (!$validation->valid()) {
+            $this->failValidation($validation->message());
+        }
+
+        $this->assertConnectionHealthy($candidate->connection);
+        $data = $this->settingsRepository->get()->toArray();
+        $data['enabled'] = true;
+        $data['default_connection'] = 'primary';
+        $data['connection'] = $candidate->connection->toArray();
+        $data['connections']['primary'] = $candidate->connection->toArray();
+        $this->settingsRepository->save(MailerSettings::fromArray($data));
+        $this->redirect(self::SLUG, ['tab' => 'general', 'imported' => $source, 'health' => 'ok']);
+    }
+
     private function generalTab(MailerSettings $settings): void
     {
         $connection = $settings->defaultConnection();
@@ -186,25 +229,35 @@ final readonly class AdminPage
         $this->switchRow('enabled', 'Enable Mailer', $settings->enabled);
 
         echo '<div class="spm-provider-grid">';
-        foreach (self::PROVIDERS as [$provider, $label, $type]) {
-            $checked = $connection->provider === $provider ? ' checked' : '';
+        foreach ($this->providers->all() as $provider) {
+            $checked = $connection->provider === $provider->key ? ' checked' : '';
             echo '<label class="spm-provider-card">';
-            echo '<input type="radio" name="provider" value="' . $this->attr($provider) . '"' . $checked . '>';
-            echo '<strong>' . $this->esc($label) . '</strong><span>' . $this->esc($type) . '</span>';
+            echo '<input type="radio" name="provider" value="' . $this->attr($provider->key) . '"' . $checked . '>';
+            echo $this->providerLogo($provider);
+            echo '<strong>' . $this->esc($provider->title) . '</strong><span>' . $this->esc($provider->type) . '</span>';
             echo '</label>';
         }
         echo '</div>';
 
+        $this->providerHelp($connection);
+        $this->select('key_store', 'Secret Source', $connection->keyStore, ['option' => 'Stored option', 'encrypted_option' => 'Encrypted option', 'env' => 'Environment / constants', 'wp_config' => 'wp-config.php constants', 'config' => 'Kernel config / filter']);
+        $this->input('secret_prefix', 'Secret Prefix', $connection->secretPrefix);
         $this->input('dsn', 'Symfony DSN', $connection->dsn);
         $this->input('host', 'SMTP Host', $connection->host);
         $this->input('port', 'SMTP Port', (string) $connection->port, 'number');
         $this->input('username', 'Username', $connection->username);
         $this->input('password', 'Password', $connection->password, 'password');
-        $this->select('encryption', 'Encryption', $connection->encryption, ['tls' => 'TLS', 'ssl' => 'SSL', 'none' => 'None']);
+        $this->select('encryption', 'Encryption', $connection->encryption, $this->providerFieldOptions($connection, 'encryption') ?: ['tls' => 'TLS', 'ssl' => 'SSL', 'none' => 'None']);
         $this->input('api_key', 'API Key', $connection->apiKey);
         $this->input('api_secret', 'API Secret', $connection->apiSecret, 'password');
         $this->input('domain', 'Domain', $connection->domain);
-        $this->input('region', 'Region', $connection->region);
+        $regionOptions = $this->providerFieldOptions($connection, 'region');
+
+        if ($regionOptions !== []) {
+            $this->select('region', 'Region', $connection->region, $regionOptions);
+        } else {
+            $this->input('region', 'Region', $connection->region);
+        }
         $this->input('tenant_id', 'Tenant ID', $connection->tenantId);
         $this->input('from_email', 'From Email', $connection->fromEmail, 'email');
         $this->input('from_name', 'From Name', $connection->fromName);
@@ -225,11 +278,43 @@ final readonly class AdminPage
         echo '</section>';
     }
 
+    private function importTab(): void
+    {
+        $candidates = $this->imports->candidates();
+
+        echo '<section class="spm-section">';
+        echo '<h2>Import Existing SMTP Settings</h2>';
+
+        if ($candidates === []) {
+            echo '<p>No supported SMTP plugin settings were detected. Supported import sources are Fluent SMTP, WP Mail SMTP, Easy WP SMTP and Post SMTP.</p>';
+            echo '</section>';
+            return;
+        }
+
+        foreach ($candidates as $candidate) {
+            echo '<div class="spm-card">';
+            echo '<h3>' . $this->esc($candidate->title) . '</h3>';
+            echo '<p>' . $this->esc($candidate->description) . '</p>';
+            echo '<p><strong>' . $this->esc($candidate->connection->provider) . '</strong> ';
+            echo $this->esc($candidate->connection->fromEmail !== '' ? $candidate->connection->fromEmail : $candidate->connection->host) . '</p>';
+            echo '<form method="post" action="' . $this->attr($this->adminPostUrl()) . '">';
+            echo '<input type="hidden" name="action" value="sympress_mailer_import_connection">';
+            echo '<input type="hidden" name="source" value="' . $this->attr($candidate->source) . '">';
+            $this->nonce('sympress_mailer_import_connection_' . $candidate->source);
+            echo '<button type="submit" class="button button-primary">Import Connection</button>';
+            echo '</form>';
+            echo '</div>';
+        }
+
+        echo '</section>';
+    }
+
     /** @param array<string, mixed> $post */
     private function connectionFromPost(array $post): ConnectionConfig
     {
         return ConnectionConfig::fromArray(
-            [
+            $this->withProviderDefaults(
+                [
                 'id'              => 'primary',
                 'name'            => 'Primary',
                 'provider'        => $post['provider'] ?? 'smtp',
@@ -251,7 +336,10 @@ final readonly class AdminPage
                 'return_path'     => $post['return_path'] ?? false,
                 'auto_tls'        => $post['auto_tls'] ?? false,
                 'verify_peer'     => $post['verify_peer'] ?? false,
-            ],
+                'key_store'       => $post['key_store'] ?? 'option',
+                'secret_prefix'   => $post['secret_prefix'] ?? '',
+                ],
+            ),
             'primary',
         );
     }
@@ -275,7 +363,7 @@ final readonly class AdminPage
     private function tabs(string $current): void
     {
         echo '<nav class="nav-tab-wrapper spm-tabs" aria-label="Mailer settings tabs">';
-        foreach (['general' => 'General', 'misc' => 'Misc'] as $tab => $label) {
+        foreach (['general' => 'General', 'import' => 'Import', 'misc' => 'Misc'] as $tab => $label) {
             $class = $tab === $current ? ' nav-tab-active' : '';
             $currentAttribute = $tab === $current ? ' aria-current="page"' : '';
             $url = $this->adminUrl('admin.php', ['page' => self::SLUG, 'tab' => $tab]);
@@ -288,7 +376,47 @@ final readonly class AdminPage
     {
         $tab = WordPressArray::string(WordPressArray::get()['tab'] ?? 'general');
 
-        return $tab === 'misc' ? 'misc' : 'general';
+        return in_array($tab, ['general', 'import', 'misc'], true) ? $tab : 'general';
+    }
+
+    private function adminNotices(): void
+    {
+        $get = WordPressArray::get();
+
+        if (WordPressArray::bool($get['updated'] ?? false)) {
+            echo '<div class="notice notice-success inline"><p>Settings saved.</p></div>';
+        }
+
+        $imported = WordPressArray::string($get['imported'] ?? '');
+
+        if ($imported !== '') {
+            echo '<div class="notice notice-success inline"><p>Imported settings from ' . $this->esc($imported) . '.</p></div>';
+        }
+
+        if (!(WordPressArray::string($get['health'] ?? '') === 'ok')) {
+            return;
+        }
+
+        echo '<div class="notice notice-success inline"><p>Connection health check passed.</p></div>';
+    }
+
+    private function providerHelp(ConnectionConfig $connection): void
+    {
+        $provider = $this->providers->get($connection->provider);
+
+        if ($provider === null || $provider->docsUrl === '') {
+            return;
+        }
+
+        echo '<p class="description"><a href="' . $this->attr($provider->docsUrl) . '" target="_blank" rel="noopener noreferrer">';
+        echo $this->esc($provider->title) . ' setup documentation</a></p>';
+    }
+
+    private function providerLogo(ProviderDefinition $provider): string
+    {
+        $logo = $provider->logo !== '' ? $provider->logo : strtoupper(substr($provider->title, 0, 2));
+
+        return '<span class="spm-provider-logo" aria-hidden="true">' . $this->esc($logo) . '</span>';
     }
 
     private function switchRow(string $name, string $label, bool $checked): void
@@ -337,6 +465,46 @@ final readonly class AdminPage
         }
 
         check_admin_referer($action);
+    }
+
+    private function failValidation(string $message): never
+    {
+        if (function_exists('wp_die')) {
+            wp_die(nl2br($this->esc($message)), 'SymPress Mailer validation failed', ['response' => 422]);
+        }
+
+        throw new \InvalidArgumentException($message);
+    }
+
+    private function assertConnectionHealthy(ConnectionConfig $connection): void
+    {
+        $health = $this->healthChecker->check($connection);
+
+        if ($health->healthy) {
+            return;
+        }
+
+        $this->failValidation($health->message);
+    }
+
+    /**
+     * @param array<string, mixed> $connection
+     * @return array<string, mixed>
+     */
+    private function withProviderDefaults(array $connection): array
+    {
+        $provider = $this->providers->get(WordPressArray::string($connection['provider'] ?? ''));
+
+        return $provider?->applyDefaults($connection) ?? $connection;
+    }
+
+    /** @return array<string, string> */
+    private function providerFieldOptions(ConnectionConfig $connection, string $field): array
+    {
+        $provider = $this->providers->get($connection->provider);
+        $options = $provider?->options[$field] ?? [];
+
+        return is_array($options) ? $options : [];
     }
 
     private function nonce(string $action): void

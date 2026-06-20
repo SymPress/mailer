@@ -26,6 +26,24 @@ services:
     SymPress\Mailer\Message\EmailBodyProcessorInterface:
         alias: SymPress\Mailer\Message\NullEmailBodyProcessor
 
+    SymPress\Mailer\Message\AttachmentPolicyInterface:
+        alias: SymPress\Mailer\Message\DefaultAttachmentPolicy
+
+    SymPress\Mailer\Provider\ProviderRegistryInterface:
+        alias: SymPress\Mailer\Provider\DefaultProviderRegistry
+
+    SymPress\Mailer\Provider\ProviderCatalogInterface:
+        alias: SymPress\Mailer\Provider\DefaultProviderCatalog
+
+    SymPress\Mailer\Secret\ConnectionSecretResolverInterface:
+        alias: SymPress\Mailer\Secret\EnvironmentConnectionSecretResolver
+
+    SymPress\Mailer\Validation\ConnectionValidatorInterface:
+        alias: SymPress\Mailer\Validation\DefaultConnectionValidator
+
+    SymPress\Mailer\Validation\ConnectionHealthCheckerInterface:
+        alias: SymPress\Mailer\Validation\DefaultConnectionHealthChecker
+
     SymPress\Mailer\Config\WordPressSettingsRepository:
         arguments:
             $optionName: '%mailer.option_name%'
@@ -40,3 +58,4 @@ services:
             - { name: kernel.hook, hook: 'network_admin_menu', method: register }
             - { name: kernel.hook, hook: 'admin_post_sympress_mailer_save_settings', method: saveSettings }
             - { name: kernel.hook, hook: 'admin_post_sympress_mailer_send_test', method: sendTest }
+            - { name: kernel.hook, hook: 'admin_post_sympress_mailer_import_connection', method: importConnection }
