@@ -21,11 +21,12 @@ the compiled entrypoints instead.
 
 ```sh
 composer test
-composer cs:analyze
+composer static-analysis
 composer cs
+npm run typecheck
 ```
 
-Use `composer test:unit` for the unit test suite only.
+Use `composer tests` for the unit test suite only.
 
 ## Extension Points
 

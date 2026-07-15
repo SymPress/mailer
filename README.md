@@ -52,6 +52,7 @@ The PHP asset provider loads `assets/entrypoints.json` when it exists and falls 
 
 ```sh
 composer test
-composer cs:analyze
+composer static-analysis
 composer cs
+npm run typecheck
 ```

@@ -8,9 +8,9 @@ Thanks for taking the time to improve SymPress Mailer.
 composer install
 npm install
 composer test
-composer cs:analyze
+composer static-analysis
 composer cs
-npm run build
+npm run build # includes the TypeScript typecheck
 ```
 
 The package uses PHP 8.5, Symfony Mailer, Symfony DependencyInjection, PHPUnit,

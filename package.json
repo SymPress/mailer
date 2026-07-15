@@ -19,8 +19,9 @@
         "webpack-cli": "^4"
     },
     "scripts": {
-        "build": "encore production",
+        "build": "tsc --noEmit && encore production",
         "dev": "encore dev",
+        "typecheck": "tsc --noEmit",
         "watch": "encore dev --watch"
     }
 }
