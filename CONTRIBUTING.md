@@ -14,7 +14,7 @@ npm run build # includes the TypeScript typecheck
 ```
 
 The package uses PHP 8.5, Symfony Mailer, Symfony DependencyInjection, PHPUnit,
-PHPStan, PHP CS Fixer, PHPCS with the Inpsyde coding standards, TypeScript, and
+PHPStan, PHP CS Fixer, PHPCS with the SymPress coding standards, TypeScript, and
 Webpack Encore.
 
 ## Pull Requests
