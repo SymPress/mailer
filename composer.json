@@ -89,15 +89,6 @@
             "johnpbloch/wordpress-core-installer": true
         }
     },
-    "repositories": [
-        {
-            "type": "path",
-            "url": "./../*",
-            "options": {
-                "symlink": true
-            }
-        }
-    ],
     "extra": {
         "wordpress-install-dir": "vendor/wordpress/wordpress",
         "kernel": {
