@@ -10,6 +10,8 @@
     beStrictAboutOutputDuringTests="true"
     failOnRisky="true"
     failOnWarning="true"
+    failOnSkipped="true"
+    failOnPhpunitDeprecation="true"
 >
     <testsuites>
         <testsuite name="Unit">

@@ -8,9 +8,11 @@ use SymPress\Mailer\Application\TestEmailSender;
 use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Config\MailerSettings;
 use SymPress\Mailer\Config\SettingsRepositoryInterface;
+use SymPress\Mailer\Config\SettingsScope;
 use SymPress\Mailer\Import\ConnectionImportService;
 use SymPress\Mailer\Provider\ProviderDefinition;
 use SymPress\Mailer\Provider\ProviderRegistryInterface;
+use SymPress\Mailer\Secret\SecretFields;
 use SymPress\Mailer\Support\WordPressArray;
 use SymPress\Mailer\Validation\ConnectionHealthCheckerInterface;
 use SymPress\Mailer\Validation\ConnectionValidatorInterface;
@@ -38,8 +40,8 @@ final readonly class AdminPage
 
         add_menu_page(
             'SymPress Mailer',
-            'Mailer',
-            'manage_options',
+            __('Mailer', 'sympress-mailer'),
+            SettingsScope::network() ? 'manage_network_options' : 'manage_options',
             self::SLUG,
             $this->renderSettings(...),
             'dashicons-email-alt2',
@@ -48,18 +50,18 @@ final readonly class AdminPage
 
         add_submenu_page(
             self::SLUG,
-            'Settings',
-            'Settings',
-            'manage_options',
+            __('Settings', 'sympress-mailer'),
+            __('Settings', 'sympress-mailer'),
+            SettingsScope::network() ? 'manage_network_options' : 'manage_options',
             self::SLUG,
             $this->renderSettings(...),
         );
 
         add_submenu_page(
             self::SLUG,
-            'Tools',
-            'Tools',
-            'manage_options',
+            __('Tools', 'sympress-mailer'),
+            __('Tools', 'sympress-mailer'),
+            SettingsScope::network() ? 'manage_network_options' : 'manage_options',
             self::SLUG . '-tools',
             $this->renderTest(...),
         );
@@ -75,7 +77,7 @@ final readonly class AdminPage
         $settings = $this->settingsRepository->get();
         $tab = $this->currentTab();
 
-        $this->chromeStart('Settings', $settings);
+        $this->chromeStart(__('Settings', 'sympress-mailer'), $settings);
         $this->tabs($tab);
         $this->adminNotices();
 
@@ -96,7 +98,7 @@ final readonly class AdminPage
             $this->generalTab($settings);
         }
 
-        echo '<p><button type="submit" class="button button-primary">Save Settings</button></p>';
+        echo '<p><button type="submit" class="button button-primary">' . esc_html__('Save Settings', 'sympress-mailer') . '</button></p>';
         echo '</form>';
         $this->chromeEnd();
     }
@@ -110,7 +112,7 @@ final readonly class AdminPage
         $this->assertCapability();
         $settings = $this->settingsRepository->get();
 
-        $this->chromeStart('Tools', $settings);
+        $this->chromeStart(__('Tools', 'sympress-mailer'), $settings);
 
         $status = WordPressArray::string(WordPressArray::get()['sympress_mailer_test'] ?? '');
         if ($status !== '') {
@@ -119,12 +121,12 @@ final readonly class AdminPage
         }
 
         echo '<section class="spm-section">';
-        echo '<h2>Email Test</h2>';
+        echo '<h2>' . esc_html__('Email Test', 'sympress-mailer') . '</h2>';
         echo '<form method="post" action="' . $this->attr($this->adminPostUrl()) . '">';
         echo '<input type="hidden" name="action" value="sympress_mailer_send_test">';
         $this->nonce('sympress_mailer_send_test');
-        $this->input('to', 'Recipient', $this->defaultRecipient(), 'email');
-        echo '<p><button type="submit" class="button button-primary">Send Test Email</button></p>';
+        $this->input('to', __('Recipient', 'sympress-mailer'), $this->defaultRecipient(), 'email');
+        echo '<p><button type="submit" class="button button-primary">' . esc_html__('Send Test Email', 'sympress-mailer') . '</button></p>';
         echo '</form>';
         echo '</section>';
         $this->chromeEnd();
@@ -148,7 +150,7 @@ final readonly class AdminPage
             $data['do_not_send'] = WordPressArray::bool($post['do_not_send'] ?? false);
             $data['uninstall_data'] = WordPressArray::bool($post['uninstall_data'] ?? false);
         } else {
-            $connection = $this->connectionFromPost($post);
+            $connection = $this->connectionFromPost(SecretFields::preserve($post, $this->settingsRepository->get()->defaultConnection()->toArray()));
             $validation = $this->validator->validate($connection);
 
             if (!$validation->valid()) {
@@ -201,7 +203,7 @@ final readonly class AdminPage
         $candidate = $this->imports->find($source);
 
         if ($candidate === null) {
-            $this->failValidation('No importable mailer connection was found for this source.');
+            $this->failValidation(__('No importable mailer connection was found for this source.', 'sympress-mailer'));
         }
 
         $validation = $this->validator->validate($candidate->connection);
@@ -225,8 +227,8 @@ final readonly class AdminPage
         $connection = $settings->defaultConnection();
 
         echo '<section class="spm-section">';
-        echo '<h2>Primary Connection</h2>';
-        $this->switchRow('enabled', 'Enable Mailer', $settings->enabled);
+        echo '<h2>' . esc_html__('Primary Connection', 'sympress-mailer') . '</h2>';
+        $this->switchRow('enabled', __('Enable Mailer', 'sympress-mailer'), $settings->enabled);
 
         echo '<div class="spm-provider-grid">';
         foreach ($this->providers->all() as $provider) {
@@ -240,41 +242,41 @@ final readonly class AdminPage
         echo '</div>';
 
         $this->providerHelp($connection);
-        $this->select('key_store', 'Secret Source', $connection->keyStore, ['option' => 'Stored option', 'encrypted_option' => 'Encrypted option', 'env' => 'Environment / constants', 'wp_config' => 'wp-config.php constants', 'config' => 'Kernel config / filter']);
-        $this->input('secret_prefix', 'Secret Prefix', $connection->secretPrefix);
-        $this->input('dsn', 'Symfony DSN', $connection->dsn);
-        $this->input('host', 'SMTP Host', $connection->host);
-        $this->input('port', 'SMTP Port', (string) $connection->port, 'number');
-        $this->input('username', 'Username', $connection->username);
-        $this->input('password', 'Password', $connection->password, 'password');
-        $this->select('encryption', 'Encryption', $connection->encryption, $this->providerFieldOptions($connection, 'encryption') ?: ['tls' => 'TLS', 'ssl' => 'SSL', 'none' => 'None']);
-        $this->input('api_key', 'API Key', $connection->apiKey);
-        $this->input('api_secret', 'API Secret', $connection->apiSecret, 'password');
-        $this->input('domain', 'Domain', $connection->domain);
+        $this->select('key_store', __('Secret Source', 'sympress-mailer'), $connection->keyStore, ['encrypted_option' => __('Encrypted option', 'sympress-mailer'), 'env' => __('Environment / constants', 'sympress-mailer'), 'wp_config' => 'wp-config.php constants', 'config' => __('Kernel config / filter', 'sympress-mailer')]);
+        $this->input('secret_prefix', __('Secret Prefix', 'sympress-mailer'), $connection->secretPrefix);
+        $this->input('dsn', __('Symfony DSN', 'sympress-mailer'), $connection->dsn);
+        $this->input('host', __('SMTP Host', 'sympress-mailer'), $connection->host);
+        $this->input('port', __('SMTP Port', 'sympress-mailer'), (string) $connection->port, 'number');
+        $this->input('username', __('Username', 'sympress-mailer'), $connection->username);
+        $this->input('password', __('Password', 'sympress-mailer'), $connection->password, 'password');
+        $this->select('encryption', __('Encryption', 'sympress-mailer'), $connection->encryption, $this->providerFieldOptions($connection, 'encryption') ?: ['tls' => 'TLS', 'ssl' => 'SSL', 'none' => __('None', 'sympress-mailer')]);
+        $this->input('api_key', __('API Key', 'sympress-mailer'), $connection->apiKey);
+        $this->input('api_secret', __('API Secret', 'sympress-mailer'), $connection->apiSecret, 'password');
+        $this->input('domain', __('Domain', 'sympress-mailer'), $connection->domain);
         $regionOptions = $this->providerFieldOptions($connection, 'region');
 
         if ($regionOptions !== []) {
-            $this->select('region', 'Region', $connection->region, $regionOptions);
+            $this->select('region', __('Region', 'sympress-mailer'), $connection->region, $regionOptions);
         } else {
-            $this->input('region', 'Region', $connection->region);
+            $this->input('region', __('Region', 'sympress-mailer'), $connection->region);
         }
-        $this->input('tenant_id', 'Tenant ID', $connection->tenantId);
-        $this->input('from_email', 'From Email', $connection->fromEmail, 'email');
-        $this->input('from_name', 'From Name', $connection->fromName);
-        $this->switchRow('force_from', 'Force From Email', $connection->forceFrom);
-        $this->switchRow('force_from_name', 'Force From Name', $connection->forceFromName);
-        $this->switchRow('return_path', 'Set Return-Path', $connection->returnPath);
-        $this->switchRow('auto_tls', 'Auto TLS', $connection->autoTls);
-        $this->switchRow('verify_peer', 'Verify TLS Peer', $connection->verifyPeer);
+        $this->input('tenant_id', __('Tenant ID', 'sympress-mailer'), $connection->tenantId);
+        $this->input('from_email', __('From Email', 'sympress-mailer'), $connection->fromEmail, 'email');
+        $this->input('from_name', __('From Name', 'sympress-mailer'), $connection->fromName);
+        $this->switchRow('force_from', __('Force From Email', 'sympress-mailer'), $connection->forceFrom);
+        $this->switchRow('force_from_name', __('Force From Name', 'sympress-mailer'), $connection->forceFromName);
+        $this->switchRow('return_path', __('Set Return-Path', 'sympress-mailer'), $connection->returnPath);
+        $this->switchRow('auto_tls', __('Auto TLS', 'sympress-mailer'), $connection->autoTls);
+        $this->switchRow('verify_peer', __('Verify TLS Peer', 'sympress-mailer'), $connection->verifyPeer);
         echo '</section>';
     }
 
     private function miscTab(MailerSettings $settings): void
     {
         echo '<section class="spm-section">';
-        echo '<h2>Misc</h2>';
-        $this->switchRow('do_not_send', 'Do Not Send', $settings->doNotSend);
-        $this->switchRow('uninstall_data', 'Delete Settings on Uninstall', $settings->uninstallData);
+        echo '<h2>' . esc_html__('Misc', 'sympress-mailer') . '</h2>';
+        $this->switchRow('do_not_send', __('Do Not Send', 'sympress-mailer'), $settings->doNotSend);
+        $this->switchRow('uninstall_data', __('Delete Settings on Uninstall', 'sympress-mailer'), $settings->uninstallData);
         echo '</section>';
     }
 
@@ -283,10 +285,10 @@ final readonly class AdminPage
         $candidates = $this->imports->candidates();
 
         echo '<section class="spm-section">';
-        echo '<h2>Import Existing SMTP Settings</h2>';
+        echo '<h2>' . esc_html__('Import Existing SMTP Settings', 'sympress-mailer') . '</h2>';
 
         if ($candidates === []) {
-            echo '<p>No supported SMTP plugin settings were detected. Supported import sources are Fluent SMTP, WP Mail SMTP, Easy WP SMTP and Post SMTP.</p>';
+            echo '<p>' . esc_html__('No supported SMTP plugin settings were detected. Supported import sources are Fluent SMTP, WP Mail SMTP, Easy WP SMTP and Post SMTP.', 'sympress-mailer') . '</p>';
             echo '</section>';
             return;
         }
@@ -301,7 +303,7 @@ final readonly class AdminPage
             echo '<input type="hidden" name="action" value="sympress_mailer_import_connection">';
             echo '<input type="hidden" name="source" value="' . $this->attr($candidate->source) . '">';
             $this->nonce('sympress_mailer_import_connection_' . $candidate->source);
-            echo '<button type="submit" class="button button-primary">Import Connection</button>';
+            echo '<button type="submit" class="button button-primary">' . esc_html__('Import Connection', 'sympress-mailer') . '</button>';
             echo '</form>';
             echo '</div>';
         }
@@ -336,7 +338,7 @@ final readonly class AdminPage
                 'return_path'     => $post['return_path'] ?? false,
                 'auto_tls'        => $post['auto_tls'] ?? false,
                 'verify_peer'     => $post['verify_peer'] ?? false,
-                'key_store'       => $post['key_store'] ?? 'option',
+                'key_store'       => $post['key_store'] ?? 'encrypted_option',
                 'secret_prefix'   => $post['secret_prefix'] ?? '',
                 ],
             ),
@@ -348,9 +350,9 @@ final readonly class AdminPage
     {
         echo '<div class="wrap sympress-mailer">';
         echo '<section class="spm-section spm-hero">';
-        echo '<div><h1>SymPress Mailer</h1><p>Symfony Mailer delivery for WordPress.</p></div>';
+        echo '<div><h1>' . esc_html__('SymPress Mailer', 'sympress-mailer') . '</h1><p>' . esc_html__('Symfony Mailer delivery for WordPress.', 'sympress-mailer') . '</p></div>';
         echo '<span class="spm-status ' . ($settings->enabled ? 'is-on' : 'is-off') . '">';
-        echo $settings->enabled ? 'Enabled' : 'Disabled';
+        echo $settings->enabled ? __('Enabled', 'sympress-mailer') : __('Disabled', 'sympress-mailer');
         echo '</span></section>';
         echo '<section class="spm-section spm-page-title"><h2>' . $this->esc($title) . '</h2></section>';
     }
@@ -363,7 +365,7 @@ final readonly class AdminPage
     private function tabs(string $current): void
     {
         echo '<nav class="nav-tab-wrapper spm-tabs" aria-label="Mailer settings tabs">';
-        foreach (['general' => 'General', 'import' => 'Import', 'misc' => 'Misc'] as $tab => $label) {
+        foreach (['general' => __('General', 'sympress-mailer'), 'import' => __('Import', 'sympress-mailer'), 'misc' => __('Misc', 'sympress-mailer')] as $tab => $label) {
             $class = $tab === $current ? ' nav-tab-active' : '';
             $currentAttribute = $tab === $current ? ' aria-current="page"' : '';
             $url = $this->adminUrl('admin.php', ['page' => self::SLUG, 'tab' => $tab]);
@@ -384,7 +386,7 @@ final readonly class AdminPage
         $get = WordPressArray::get();
 
         if (WordPressArray::bool($get['updated'] ?? false)) {
-            echo '<div class="notice notice-success inline"><p>Settings saved.</p></div>';
+            echo '<div class="notice notice-success inline"><p>' . esc_html__('Settings saved.', 'sympress-mailer') . '</p></div>';
         }
 
         $imported = WordPressArray::string($get['imported'] ?? '');
@@ -397,7 +399,7 @@ final readonly class AdminPage
             return;
         }
 
-        echo '<div class="notice notice-success inline"><p>Connection health check passed.</p></div>';
+        echo '<div class="notice notice-success inline"><p>' . esc_html__('Connection health check passed.', 'sympress-mailer') . '</p></div>';
     }
 
     private function providerHelp(ConnectionConfig $connection): void
@@ -428,9 +430,19 @@ final readonly class AdminPage
 
     private function input(string $name, string $label, string $value, string $type = 'text'): void
     {
+        $secret = SecretFields::isSecret(SecretFields::fieldName($name));
+        if ($secret) {
+            $value = '';
+            $type = 'password';
+        }
         echo '<label class="spm-field"><span>' . $this->esc($label) . '</span>';
         echo '<input type="' . $this->attr($type) . '" name="' . $this->attr($name) . '" value="' . $this->attr($value) . '">';
         echo '</label>';
+        if (!$secret) {
+            return;
+        }
+
+        $this->switchRow(SecretFields::clearName($name), __('Clear stored secret', 'sympress-mailer'), false);
     }
 
     /** @param array<string, string> $options */
@@ -447,15 +459,7 @@ final readonly class AdminPage
 
     private function assertCapability(): void
     {
-        if (!function_exists('current_user_can') || current_user_can('manage_options')) {
-            return;
-        }
-
-        if (function_exists('wp_die')) {
-            wp_die('Insufficient permissions.');
-        }
-
-        throw new \RuntimeException('Insufficient permissions.');
+        SettingsScope::assertCapability();
     }
 
     private function checkNonce(string $action): void
@@ -464,13 +468,13 @@ final readonly class AdminPage
             return;
         }
 
-        check_admin_referer($action);
+        check_admin_referer(isset(WordPressArray::post()['_sympress_scope']) ? SettingsScope::nonce($action) : $action);
     }
 
     private function failValidation(string $message): never
     {
         if (function_exists('wp_die')) {
-            wp_die(nl2br($this->esc($message)), 'SymPress Mailer validation failed', ['response' => 422]);
+            wp_die(nl2br($this->esc($message)), __('SymPress Mailer validation failed', 'sympress-mailer'), ['response' => 422]);
         }
 
         throw new \InvalidArgumentException($message);
@@ -513,7 +517,8 @@ final readonly class AdminPage
             return;
         }
 
-        wp_nonce_field($action);
+        echo '<input type="hidden" name="_sympress_scope" value="' . (SettingsScope::network() ? 'network' : 'site') . '">';
+        wp_nonce_field(SettingsScope::nonce($action));
     }
 
     /** @param array<string, string> $args */
@@ -533,7 +538,7 @@ final readonly class AdminPage
     /** @param array<string, string> $args */
     private function adminUrl(string $path, array $args = []): string
     {
-        $url = function_exists('admin_url') ? admin_url($path) : '/wp-admin/' . ltrim($path, '/');
+        $url = SettingsScope::network() && $path !== 'admin-post.php' && function_exists('network_admin_url') ? network_admin_url($path) : (function_exists('admin_url') ? admin_url($path) : '/wp-admin/' . ltrim($path, '/'));
 
         return $args === []
             ? $url

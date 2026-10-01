@@ -6,7 +6,9 @@ namespace SymPress\Mailer\Message;
 
 use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Config\MailerSettings;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Part\DataPart;
 
 final readonly class SymfonyEmailFactory
 {
@@ -42,8 +44,17 @@ final readonly class SymfonyEmailFactory
         }
 
         $from = $this->from($mail, $connection);
+        $defaultHost = function_exists('network_home_url') ? (string) wp_parse_url(network_home_url(), PHP_URL_HOST) : 'localhost';
+        $address = Address::create($from !== '' ? $from : 'wordpress@' . preg_replace('/^www\./', '', $defaultHost));
+        $fromEmail = $address->getAddress();
+        $fromName = $address->getName() !== '' ? $address->getName() : 'WordPress';
+        if (function_exists('apply_filters')) {
+            $fromEmail = (string) apply_filters('wp_mail_from', $fromEmail);
+            $fromName = (string) apply_filters('wp_mail_from_name', $fromName);
+        }
+        $from = new Address($fromEmail, $fromName);
 
-        if ($from !== '') {
+        if ($from->getAddress() !== '') {
             $email->from($from);
         }
 
@@ -52,7 +63,13 @@ final readonly class SymfonyEmailFactory
         }
 
         $body = $mail->message;
-        $isHtml = $this->isHtml($mail, $body);
+        $contentType = $mail->contentType ?? 'text/plain';
+        $charset = $mail->charset ?? (function_exists('get_bloginfo') ? get_bloginfo('charset') : 'UTF-8');
+        if (function_exists('apply_filters')) {
+            $contentType = (string) apply_filters('wp_mail_content_type', $contentType);
+            $charset = (string) apply_filters('wp_mail_charset', $charset);
+        }
+        $isHtml = str_contains(strtolower($contentType), 'html');
 
         if ($isHtml) {
             $body = $this->bodyProcessor->process(
@@ -62,10 +79,10 @@ final readonly class SymfonyEmailFactory
                 $settings,
                 $logId,
             );
-            $email->html($body);
-            $email->text($this->textFallback($body));
+            $email->html($body, $charset);
+            $email->text($this->textFallback($body), $charset);
         } else {
-            $email->text($body);
+            $email->text($body, $charset);
         }
 
         foreach ($mail->headers as $name => $values) {
@@ -87,11 +104,27 @@ final readonly class SymfonyEmailFactory
             $email->attachFromPath($attachment);
         }
 
-        $email->getHeaders()->addTextHeader('X-SymPress-Mailer-Log-ID', $logId);
-
-        if ($mail->source !== '') {
-            $email->getHeaders()->addTextHeader('X-SymPress-Mailer-Source', $mail->source);
+        $embedIds = [];
+        foreach ($mail->embeds as $cid => $path) {
+            $args = ['path' => $path, 'cid' => (string) $cid, 'name' => basename($path), 'type' => '', 'disposition' => 'inline', 'encoding' => 'base64'];
+            if (function_exists('apply_filters')) {
+                $args = apply_filters('wp_mail_embed_args', $args);
+            }
+            if (!is_array($args) || !is_string($args['path'] ?? null) || !$this->attachmentPolicy->allowed($args['path'])) {
+                continue;
+            }
+            $part = DataPart::fromPath($args['path'], is_string($args['name'] ?? null) ? $args['name'] : null, !empty($args['type']) && is_string($args['type']) ? $args['type'] : null)->asInline();
+            $nativeCid = is_string($args['cid'] ?? null) ? $args['cid'] : (string) $cid;
+            $embedIds['cid:' . $nativeCid] = 'cid:' . $part->getContentId();
+            $email->addPart($part);
         }
+
+        $html = $email->getHtmlBody();
+        if ($embedIds !== [] && is_string($html)) {
+            $email->html(strtr($html, $embedIds), $email->getHtmlCharset() ?? $charset);
+        }
+
+        $email->getHeaders()->addTextHeader('X-SymPress-Mailer-Log-ID', $logId);
 
         return $email;
     }
@@ -143,18 +176,6 @@ final readonly class SymfonyEmailFactory
         }
 
         return trim($from);
-    }
-
-    private function isHtml(WordPressMail $mail, string $body): bool
-    {
-        if ($mail->contentType !== null && str_contains(strtolower($mail->contentType), 'html')) {
-            return true;
-        }
-
-        return stripos($body, '<html') !== false
-            || stripos($body, '<body') !== false
-            || stripos($body, '<p>') !== false
-            || stripos($body, '<br') !== false;
     }
 
     private function textFallback(string $html): string

@@ -8,4 +8,9 @@ where applicable.
 
 ## Unreleased
 
+- Encrypt option credentials by default, migrate legacy values with conditional writes, and fail closed on missing/rotated keys.
+- Hide secrets in admin forms, preserve blank fields, add explicit clearing and authorized network scope.
+- Preserve native mail filters/actions, header envelopes and embedded images; remove source headers and add translation templates.
+- Add real WordPress/Multisite integration tests and CI; default new settings to no diagnostic body retention.
+
 - Initial SymPress Mailer package documentation.

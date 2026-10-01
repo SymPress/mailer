@@ -36,9 +36,9 @@ final class WordPressSettingsRepositoryTest extends TestCase
         $stored = $GLOBALS['sympress_mailer_test_options']['sympress_mailer_settings_test'] ?? null;
 
         self::assertIsArray($stored);
-        self::assertStringStartsWith('enc:v1:', $stored['connections']['primary']['username']);
-        self::assertStringStartsWith('enc:v1:', $stored['connections']['primary']['password']);
-        self::assertStringStartsWith('enc:v1:', $stored['connections']['primary']['api_key']);
+        self::assertStringStartsWith('enc:v2:', $stored['connections']['primary']['username']);
+        self::assertStringStartsWith('enc:v2:', $stored['connections']['primary']['password']);
+        self::assertStringStartsWith('enc:v2:', $stored['connections']['primary']['api_key']);
 
         $settings = $repository->get();
 
@@ -47,8 +47,9 @@ final class WordPressSettingsRepositoryTest extends TestCase
         self::assertSame('api-secret', $settings->defaultConnection()->apiKey);
     }
 
-    public function testPlainOptionSecretsStayReadableInStoredOptions(): void
+    public function testDefaultSecretsAreEncryptedInStoredOptions(): void
     {
+        $this->defineEncryptionConstants();
         $GLOBALS['sympress_mailer_test_options'] = [];
 
         $repository = new WordPressSettingsRepository('sympress_mailer_plain_settings_test');
@@ -68,8 +69,8 @@ final class WordPressSettingsRepositoryTest extends TestCase
         $stored = $GLOBALS['sympress_mailer_test_options']['sympress_mailer_plain_settings_test'] ?? null;
 
         self::assertIsArray($stored);
-        self::assertSame('plain-user', $stored['connections']['primary']['username']);
-        self::assertSame('plain-secret', $stored['connections']['primary']['password']);
+        self::assertStringStartsWith('enc:v2:', $stored['connections']['primary']['username']);
+        self::assertStringStartsWith('enc:v2:', $stored['connections']['primary']['password']);
     }
 
     private function defineEncryptionConstants(): void

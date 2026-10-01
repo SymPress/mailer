@@ -17,7 +17,8 @@
         "symfony/mailer": "^8.1",
         "symfony/mime": "^8.1",
         "sympress/assets": "dev-main",
-        "sympress/kernel": "dev-main"
+        "sympress/kernel": "dev-main",
+        "ext-openssl": "*"
     },
     "require-dev": {
         "brain/monkey": "^2",
@@ -25,7 +26,8 @@
         "mockery/mockery": "^1.6",
         "php-stubs/wordpress-stubs": ">=7.0@stable",
         "symfony/var-dumper": "^8.1",
-        "sympress/qa": "dev-main"
+        "sympress/qa": "dev-main",
+        "johnpbloch/wordpress": "^7.1"
     },
     "suggest": {
         "symfony/amazon-mailer": "Adds Amazon SES API and SMTP DSN support.",
@@ -53,19 +55,19 @@
     "scripts": {
         "cs": [
             "Composer\\Config::disableProcessTimeout",
-            "qa cs"
+            "qa cs --strict"
         ],
         "cs:fix": [
             "Composer\\Config::disableProcessTimeout",
-            "qa cs:fix"
+            "qa cs:fix --strict"
         ],
         "static-analysis": [
             "Composer\\Config::disableProcessTimeout",
-            "qa static-analysis"
+            "qa static-analysis --strict"
         ],
         "tests": [
             "Composer\\Config::disableProcessTimeout",
-            "qa tests"
+            "qa tests --strict"
         ],
         "test": [
             "@tests"
@@ -74,7 +76,8 @@
             "@cs",
             "@static-analysis",
             "@tests"
-        ]
+        ],
+        "tests:database": "phpunit --configuration phpunit.database.xml.dist"
     },
     "config": {
         "sort-packages": true,
@@ -82,7 +85,8 @@
         "preferred-install": "dist",
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "johnpbloch/wordpress-core-installer": true
         }
     },
     "repositories": [

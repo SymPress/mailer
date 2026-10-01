@@ -15,6 +15,7 @@ final readonly class SymfonyMailerFactory
     public function __construct(
         private DsnFactory $dsnFactory,
         private ProviderApiTransportFactory $providerApiTransports,
+        private ?TransportInterface $transportOverride = null,
     ) {
     }
 
@@ -25,7 +26,8 @@ final readonly class SymfonyMailerFactory
 
     public function transport(ConnectionConfig $connection): TransportInterface
     {
-        return $this->providerApiTransports->create($connection)
+        return $this->transportOverride
+            ?? $this->providerApiTransports->create($connection)
             ?? Transport::fromDsn($this->dsnFactory->create($connection));
     }
 }

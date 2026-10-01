@@ -50,7 +50,7 @@ services:
 
     SymPress\Mailer\Hook\WordPressMailerBridge:
         tags:
-            - { name: kernel.hook, hook: 'pre_wp_mail', method: send, type: filter, priority: 1, accepted_args: 2 }
+            - { name: kernel.hook, hook: 'pre_wp_mail', method: send, type: filter, priority: 2147483647, accepted_args: 2 }
 
     SymPress\Mailer\Admin\AdminPage:
         tags:
@@ -59,3 +59,7 @@ services:
             - { name: kernel.hook, hook: 'admin_post_sympress_mailer_save_settings', method: saveSettings }
             - { name: kernel.hook, hook: 'admin_post_sympress_mailer_send_test', method: sendTest }
             - { name: kernel.hook, hook: 'admin_post_sympress_mailer_import_connection', method: importConnection }
+
+    SymPress\Mailer\Hook\Translations:
+        tags:
+            - { name: kernel.hook, hook: 'init', method: load }
