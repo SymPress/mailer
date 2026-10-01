@@ -16,8 +16,8 @@
         "symfony/http-client": "^8.1",
         "symfony/mailer": "^8.1",
         "symfony/mime": "^8.1",
-        "sympress/assets": "dev-main",
-        "sympress/kernel": "dev-main",
+        "sympress/assets": "^1.2.1",
+        "sympress/kernel": "^1.1.1",
         "ext-openssl": "*"
     },
     "require-dev": {
@@ -26,7 +26,7 @@
         "mockery/mockery": "^1.6",
         "php-stubs/wordpress-stubs": ">=7.0@stable",
         "symfony/var-dumper": "^8.1",
-        "sympress/qa": "dev-main",
+        "sympress/qa": "^0.1.2",
         "johnpbloch/wordpress": "^7.1"
     },
     "suggest": {
@@ -105,6 +105,6 @@
             "entry": "mailer/mailer.php"
         }
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true
 }
