@@ -12,6 +12,7 @@ final readonly class WordPressMail
      * @param list<string> $bcc
      * @param list<string> $replyTo
      * @param array<string, list<string>> $headers
+     * @param array<int|string, string> $embeds
      * @param list<string> $attachments
      */
     public function __construct(
@@ -27,6 +28,7 @@ final readonly class WordPressMail
         public ?string $contentType = null,
         public ?string $charset = null,
         public string $source = '',
+        public array $embeds = [],
     ) {
     }
 
@@ -46,6 +48,7 @@ final readonly class WordPressMail
             'content_type' => $this->contentType,
             'charset'      => $this->charset,
             'source'       => $this->source,
+            'embeds'       => $this->embeds,
         ];
     }
 
@@ -65,7 +68,17 @@ final readonly class WordPressMail
             contentType: self::nullableString($data['content_type'] ?? $data['contentType'] ?? null),
             charset: self::nullableString($data['charset'] ?? null),
             source: self::string($data['source'] ?? ''),
+            embeds: self::embedPaths($data['embeds'] ?? []),
         );
+    }
+
+    /** @return array<int|string, string> */
+    public static function embedPaths(mixed $value): array
+    {
+        if (is_string($value)) {
+            $value = preg_split('/\r\n|\r|\n/', $value) ?: [];
+        }
+        return is_array($value) ? array_filter($value, static fn ($path): bool => is_string($path) && $path !== '') : [];
     }
 
     /** @param mixed $value */

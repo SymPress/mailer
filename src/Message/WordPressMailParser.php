@@ -13,8 +13,8 @@ final class WordPressMailParser
 
         return new WordPressMail(
             to: $this->addresses($atts['to'] ?? []),
-            subject: $this->scalar($atts['subject'] ?? ''),
-            message: $this->scalar($atts['message'] ?? ''),
+            subject: is_scalar($atts['subject'] ?? null) ? (string) $atts['subject'] : '',
+            message: is_scalar($atts['message'] ?? null) ? (string) $atts['message'] : '',
             headers: $headers['headers'],
             attachments: $this->attachments($atts['attachments'] ?? []),
             from: $headers['from'],
@@ -24,6 +24,7 @@ final class WordPressMailParser
             contentType: $headers['content_type'],
             charset: $headers['charset'],
             source: $this->sourceFromBacktrace(),
+            embeds: WordPressMail::embedPaths($atts['embeds'] ?? []),
         );
     }
 

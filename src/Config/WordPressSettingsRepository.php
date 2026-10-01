@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace SymPress\Mailer\Config;
 
+use SymPress\Mailer\Secret\SecretCipher;
+use SymPress\Mailer\Secret\SecretFields;
+
 final readonly class WordPressSettingsRepository implements SettingsRepositoryInterface
 {
     public function __construct(
@@ -23,84 +26,111 @@ final readonly class WordPressSettingsRepository implements SettingsRepositoryIn
             $data = is_array($option) ? $option : [];
         }
 
+        $plain = $this->mapSecrets($data, false);
+        if ($this->needsMigration($data)) {
+            $this->write($this->mapSecrets($plain, true), $data);
+        }
+        $data = $plain;
         if (function_exists('apply_filters')) {
             $filtered = apply_filters('sympress_mailer_settings', $data);
             $data = is_array($filtered) ? $filtered : $data;
         }
-
-        $data = $this->decryptSecrets($data);
 
         return MailerSettings::fromArray($data);
     }
 
     public function save(MailerSettings $settings): void
     {
-        $data = $this->encryptSecrets($settings->toArray());
+        $this->write($this->mapSecrets($settings->toArray(), true));
+    }
 
-        if ($this->usesNetworkOptions()) {
+    /** Call in maintenance mode before replacing the server key; drain queues first. */
+    public function rotateSecrets(SecretCipher $previous, SecretCipher $replacement): void
+    {
+        $raw = $this->usesNetworkOptions() ? get_site_option($this->optionName, []) : get_option($this->optionName, []);
+        if (!is_array($raw)) {
+            throw new \RuntimeException('Invalid mailer settings storage.');
+        }
+        // Complete authentication/decryption before changing the stored option.
+        $plain = $this->mapSecrets($raw, false, $previous);
+        $this->write($this->mapSecrets($plain, true, $replacement));
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @param array<string, mixed>|null $previous
+     */
+    private function write(array $data, ?array $previous = null): void
+    {
+        $wpdb = $GLOBALS['wpdb'] ?? null;
+        $network = $this->usesNetworkOptions();
+        if ($previous !== null && $wpdb instanceof \wpdb) {
+            // A migration must never overwrite an administrator's concurrent update.
+            $changed = $network
+                ? $wpdb->query((string) $wpdb->prepare('UPDATE %i SET meta_value = %s WHERE site_id = %d AND meta_key = %s AND meta_value = %s', $wpdb->sitemeta, maybe_serialize($data), get_current_network_id(), $this->optionName, maybe_serialize($previous)))
+                : $wpdb->query((string) $wpdb->prepare('UPDATE %i SET option_value = %s WHERE option_name = %s AND option_value = %s', $wpdb->options, maybe_serialize($data), $this->optionName, maybe_serialize($previous)));
+            if ($changed !== 1) {
+                throw new \RuntimeException('Mailer settings migration could not be persisted.');
+            }
+            if ($network) {
+                wp_cache_delete(get_current_network_id() . ':' . $this->optionName, 'site-options');
+            } else {
+                wp_cache_delete($this->optionName, 'options');
+                wp_cache_delete('alloptions', 'options');
+            }
+        } elseif ($network) {
             update_site_option($this->optionName, $data);
-            return;
+        } elseif (function_exists('update_option')) {
+            update_option($this->optionName, $data, false);
+        } else {
+            throw new \RuntimeException('Mailer settings storage is unavailable.');
         }
-
-        if (!function_exists('update_option')) {
-            return;
+        $stored = $network ? get_site_option($this->optionName, []) : get_option($this->optionName, []);
+        if ($stored !== $data) {
+            throw new \RuntimeException('Mailer settings could not be persisted.');
         }
-
-        update_option($this->optionName, $data, false);
     }
 
     private function usesNetworkOptions(): bool
     {
-        return function_exists('is_multisite')
-            && is_multisite()
-            && function_exists('is_network_admin')
-            && is_network_admin()
-            && function_exists('get_site_option')
-            && function_exists('update_site_option');
+        return SettingsScope::network();
     }
 
     /**
      * @param array<string, mixed> $data
      * @return array<string, mixed>
      */
-    private function encryptSecrets(array $data): array
+    private function mapSecrets(array $data, bool $encrypt, ?SecretCipher $cipher = null): array
     {
-        return $this->mapConnections($data, true);
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     * @return array<string, mixed>
-     */
-    private function decryptSecrets(array $data): array
-    {
-        return $this->mapConnections($data, false);
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     * @return array<string, mixed>
-     */
-    private function mapConnections(array $data, bool $encrypt): array
-    {
-        if (is_array($data['connection'] ?? null)) {
-            $data['connection'] = $this->mapConnection($data['connection'], $encrypt);
-        }
-
-        if (is_array($data['backup_connection'] ?? null)) {
-            $data['backup_connection'] = $this->mapConnection($data['backup_connection'], $encrypt);
-        }
-
-        if (is_array($data['connections'] ?? null)) {
-            foreach ($data['connections'] as $id => $connection) {
-                if (!is_array($connection)) {
-                    continue;
-                }
-
-                $data['connections'][$id] = $this->mapConnection($connection, $encrypt);
+        $cipher ??= new SecretCipher();
+        foreach (['connection', 'backup_connection'] as $field) {
+            if (!is_array($data[$field] ?? null)) {
+                continue;
             }
-        }
 
+            $data[$field] = $this->mapConnection($data[$field], $encrypt, $cipher);
+        }
+        foreach (is_array($data['connections'] ?? null) ? $data['connections'] : [] as $id => $connection) {
+            if (!is_array($connection)) {
+                continue;
+            }
+
+            $data['connections'][$id] = $this->mapConnection($connection, $encrypt, $cipher);
+        }
+        foreach (SecretFields::ALERT as $field) {
+            if (!is_string($data[$field] ?? null) || $data[$field] === '') {
+                continue;
+            }
+
+            $data[$field] = $encrypt ? $cipher->encrypt($data[$field]) : $cipher->decrypt($data[$field]);
+        }
+        foreach (is_array($data['alert_webhooks'] ?? null) ? $data['alert_webhooks'] : [] as $id => $value) {
+            if (!is_string($value) || $value === '') {
+                continue;
+            }
+
+            $data['alert_webhooks'][$id] = $encrypt ? $cipher->encrypt($value) : $cipher->decrypt($value);
+        }
         return $data;
     }
 
@@ -108,104 +138,55 @@ final readonly class WordPressSettingsRepository implements SettingsRepositoryIn
      * @param array<string, mixed> $connection
      * @return array<string, mixed>
      */
-    private function mapConnection(array $connection, bool $encrypt): array
+    private function mapConnection(array $connection, bool $encrypt, SecretCipher $cipher): array
     {
-        if (($connection['key_store'] ?? '') !== 'encrypted_option') {
+        // External secret sources store no option credentials, including abandoned old values.
+        if (!in_array($connection['key_store'] ?? 'encrypted_option', ['option', 'encrypted_option'], true)) {
+            foreach (SecretFields::CONNECTION as $field) {
+                $connection[$field] = '';
+            }
             return $connection;
         }
-
-        foreach (['dsn', 'username', 'password', 'api_key', 'api_secret', 'domain', 'tenant_id'] as $field) {
-            if (!is_scalar($connection[$field] ?? null) || (string) $connection[$field] === '') {
+        $connection['key_store'] = 'encrypted_option';
+        foreach (SecretFields::CONNECTION as $field) {
+            if (!is_string($connection[$field] ?? null) || $connection[$field] === '') {
                 continue;
             }
 
-            $connection[$field] = $encrypt
-                ? $this->encrypt((string) $connection[$field])
-                : $this->decrypt((string) $connection[$field]);
+            $connection[$field] = $encrypt ? $cipher->encrypt($connection[$field]) : $cipher->decrypt($connection[$field]);
         }
-
         return $connection;
     }
 
-    private function encrypt(string $value): string
+    /** @param array<string, mixed> $data */
+    private function needsMigration(array $data): bool
     {
-        if (str_starts_with($value, 'enc:v1:') || !function_exists('openssl_encrypt')) {
-            return $value;
-        }
-
-        $key = $this->encryptionKey();
-
-        if ($key === '') {
-            return $value;
-        }
-
-        $iv = random_bytes(12);
-        $tag = '';
-        $ciphertext = openssl_encrypt($value, 'aes-256-gcm', $key, OPENSSL_RAW_DATA, $iv, $tag);
-
-        if (!is_string($ciphertext)) {
-            return $value;
-        }
-
-        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Binary AES-GCM envelope parts are encoded for option storage.
-        $encodedIv = base64_encode($iv);
-        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Binary AES-GCM envelope parts are encoded for option storage.
-        $encodedTag = base64_encode($tag);
-        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Binary AES-GCM envelope parts are encoded for option storage.
-        $encodedCiphertext = base64_encode($ciphertext);
-
-        return 'enc:v1:' . $encodedIv . ':' . $encodedTag . ':' . $encodedCiphertext;
-    }
-
-    private function decrypt(string $value): string
-    {
-        if (!str_starts_with($value, 'enc:v1:') || !function_exists('openssl_decrypt')) {
-            return $value;
-        }
-
-        $parts = explode(':', $value, 5);
-
-        if (count($parts) !== 5) {
-            return $value;
-        }
-
-        [, , $iv, $tag, $ciphertext] = $parts;
-        $key = $this->encryptionKey();
-
-        if ($key === '') {
-            return $value;
-        }
-
-        $plain = openssl_decrypt(
-            $this->base64Decode($ciphertext),
-            'aes-256-gcm',
-            $key,
-            OPENSSL_RAW_DATA,
-            $this->base64Decode($iv),
-            $this->base64Decode($tag),
-        );
-
-        return is_string($plain) ? $plain : $value;
-    }
-
-    private function base64Decode(string $value): string
-    {
-        // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decodes binary AES-GCM envelope parts stored by encrypt().
-        return (string) base64_decode($value, true);
-    }
-
-    private function encryptionKey(): string
-    {
-        $material = '';
-
-        foreach (['AUTH_KEY', 'SECURE_AUTH_KEY', 'LOGGED_IN_KEY', 'NONCE_KEY', 'AUTH_SALT', 'SECURE_AUTH_SALT', 'LOGGED_IN_SALT', 'NONCE_SALT'] as $constant) {
-            if (!defined($constant) || !is_scalar(constant($constant))) {
+        foreach (['connection', 'backup_connection', ...array_keys(is_array($data['connections'] ?? null) ? $data['connections'] : [])] as $field) {
+            $connection = $data[$field] ?? $data['connections'][$field] ?? null;
+            if (!is_array($connection)) {
                 continue;
             }
-
-            $material .= (string) constant($constant);
+            if (!in_array($connection['key_store'] ?? 'option', ['option', 'encrypted_option'], true)) {
+                foreach (SecretFields::CONNECTION as $secret) {
+                    if (!empty($connection[$secret])) {
+                        return true; // Remove abandoned option secrets when using external configuration.
+                    }
+                }
+                continue;
+            }
+            foreach (SecretFields::CONNECTION as $secret) {
+                if (is_string($connection[$secret] ?? null) && $connection[$secret] !== '' && !str_starts_with($connection[$secret], 'enc:v2:')) {
+                    return true;
+                }
+            }
         }
-
-        return $material !== '' ? hash('sha256', $material, true) : '';
+        foreach ([...SecretFields::ALERT, 'alert_webhooks'] as $field) {
+            foreach ((array) ($data[$field] ?? []) as $value) {
+                if (is_string($value) && $value !== '' && !str_starts_with($value, 'enc:v2:')) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

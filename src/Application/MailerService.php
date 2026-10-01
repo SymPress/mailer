@@ -36,8 +36,8 @@ final readonly class MailerService implements MailerInterface
             $this->mailerFactory->create($connection)->send($email);
 
             return SendResult::sent($logId, $connection->id);
-        } catch (\Throwable $throwable) {
-            return SendResult::failed($logId, $throwable->getMessage());
+        } catch (\Throwable) {
+            return SendResult::failed($logId, 'Mail transport failed.');
         }
     }
 }

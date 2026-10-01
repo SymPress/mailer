@@ -1,0 +1,205 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: sympress-mailer\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/Admin/AdminPage.php:253
+msgid "API Key"
+msgstr ""
+
+#: src/Admin/AdminPage.php:254
+msgid "API Secret"
+msgstr ""
+
+#: src/Admin/AdminPage.php:269
+msgid "Auto TLS"
+msgstr ""
+
+#: src/Admin/AdminPage.php:445
+msgid "Clear stored secret"
+msgstr ""
+
+#: src/Admin/AdminPage.php:402
+msgid "Connection health check passed."
+msgstr ""
+
+#: src/Admin/AdminPage.php:279
+msgid "Delete Settings on Uninstall"
+msgstr ""
+
+#: src/Admin/AdminPage.php:355
+msgid "Disabled"
+msgstr ""
+
+#: src/Admin/AdminPage.php:278
+msgid "Do Not Send"
+msgstr ""
+
+#: src/Admin/AdminPage.php:255
+msgid "Domain"
+msgstr ""
+
+#: src/Admin/AdminPage.php:124
+msgid "Email Test"
+msgstr ""
+
+#: src/Admin/AdminPage.php:231
+msgid "Enable Mailer"
+msgstr ""
+
+#: src/Admin/AdminPage.php:355
+msgid "Enabled"
+msgstr ""
+
+#: src/Admin/AdminPage.php:245
+msgid "Encrypted option"
+msgstr ""
+
+#: src/Admin/AdminPage.php:252
+msgid "Encryption"
+msgstr ""
+
+#: src/Admin/AdminPage.php:245
+msgid "Environment / constants"
+msgstr ""
+
+#: src/Admin/AdminPage.php:266
+msgid "Force From Email"
+msgstr ""
+
+#: src/Admin/AdminPage.php:267
+msgid "Force From Name"
+msgstr ""
+
+#: src/Admin/AdminPage.php:264
+msgid "From Email"
+msgstr ""
+
+#: src/Admin/AdminPage.php:265
+msgid "From Name"
+msgstr ""
+
+#: src/Admin/AdminPage.php:368
+msgid "General"
+msgstr ""
+
+#: src/Admin/AdminPage.php:368
+msgid "Import"
+msgstr ""
+
+#: src/Admin/AdminPage.php:306
+msgid "Import Connection"
+msgstr ""
+
+#: src/Admin/AdminPage.php:288
+msgid "Import Existing SMTP Settings"
+msgstr ""
+
+#: src/Admin/AdminPage.php:245
+msgid "Kernel config / filter"
+msgstr ""
+
+#: src/Admin/AdminPage.php:43
+msgid "Mailer"
+msgstr ""
+
+#: src/Admin/AdminPage.php:277 src/Admin/AdminPage.php:368
+msgid "Misc"
+msgstr ""
+
+#: src/Admin/AdminPage.php:206
+msgid "No importable mailer connection was found for this source."
+msgstr ""
+
+#: src/Admin/AdminPage.php:291
+msgid "No supported SMTP plugin settings were detected. Supported import sources are Fluent SMTP, WP Mail SMTP, Easy WP SMTP and Post SMTP."
+msgstr ""
+
+#: src/Admin/AdminPage.php:252
+msgid "None"
+msgstr ""
+
+#: src/Admin/AdminPage.php:251
+msgid "Password"
+msgstr ""
+
+#: src/Admin/AdminPage.php:230
+msgid "Primary Connection"
+msgstr ""
+
+#: src/Admin/AdminPage.php:128
+msgid "Recipient"
+msgstr ""
+
+#: src/Admin/AdminPage.php:259 src/Admin/AdminPage.php:261
+msgid "Region"
+msgstr ""
+
+#: src/Admin/AdminPage.php:248
+msgid "SMTP Host"
+msgstr ""
+
+#: src/Admin/AdminPage.php:249
+msgid "SMTP Port"
+msgstr ""
+
+#: src/Admin/AdminPage.php:101
+msgid "Save Settings"
+msgstr ""
+
+#: src/Admin/AdminPage.php:246
+msgid "Secret Prefix"
+msgstr ""
+
+#: src/Admin/AdminPage.php:245
+msgid "Secret Source"
+msgstr ""
+
+#: src/Admin/AdminPage.php:129
+msgid "Send Test Email"
+msgstr ""
+
+#: src/Admin/AdminPage.php:268
+msgid "Set Return-Path"
+msgstr ""
+
+#: src/Admin/AdminPage.php:53 src/Admin/AdminPage.php:54 src/Admin/AdminPage.php:80
+msgid "Settings"
+msgstr ""
+
+#: src/Admin/AdminPage.php:389
+msgid "Settings saved."
+msgstr ""
+
+#: src/Admin/AdminPage.php:353
+msgid "SymPress Mailer"
+msgstr ""
+
+#: src/Admin/AdminPage.php:477
+msgid "SymPress Mailer validation failed"
+msgstr ""
+
+#: src/Admin/AdminPage.php:247
+msgid "Symfony DSN"
+msgstr ""
+
+#: src/Admin/AdminPage.php:353
+msgid "Symfony Mailer delivery for WordPress."
+msgstr ""
+
+#: src/Admin/AdminPage.php:263
+msgid "Tenant ID"
+msgstr ""
+
+#: src/Admin/AdminPage.php:62 src/Admin/AdminPage.php:63 src/Admin/AdminPage.php:115
+msgid "Tools"
+msgstr ""
+
+#: src/Admin/AdminPage.php:250
+msgid "Username"
+msgstr ""
+
+#: src/Admin/AdminPage.php:270
+msgid "Verify TLS Peer"
+msgstr ""

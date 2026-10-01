@@ -7,7 +7,7 @@ const syncSwitch = (input: MailerInput): void => {
     const state = switchLabel?.querySelector<HTMLElement>("strong");
 
     if (state) {
-        state.textContent = input.checked ? "ON" : "OFF";
+        state.textContent = (input.checked ? switchLabel?.dataset.on : switchLabel?.dataset.off) ?? state.textContent;
     }
 };
 

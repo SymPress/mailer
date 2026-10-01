@@ -30,7 +30,7 @@ final readonly class ConnectionConfig
         public bool $returnPath = false,
         public bool $autoTls = true,
         public bool $verifyPeer = true,
-        public string $keyStore = 'option',
+        public string $keyStore = 'encrypted_option',
         public string $secretPrefix = '',
     ) {
     }
@@ -44,14 +44,14 @@ final readonly class ConnectionConfig
             id: $id !== '' ? self::slug($id) : $fallbackId,
             name: WordPressArray::string($data['name'] ?? ''),
             provider: self::slug(WordPressArray::string($data['provider'] ?? 'dsn')),
-            dsn: WordPressArray::string($data['dsn'] ?? ''),
+            dsn: self::secret($data['dsn'] ?? ''),
             host: WordPressArray::string($data['host'] ?? ''),
             port: max(1, WordPressArray::int($data['port'] ?? 587, 587)),
             username: WordPressArray::string($data['username'] ?? ''),
-            password: WordPressArray::string($data['password'] ?? ''),
+            password: self::secret($data['password'] ?? ''),
             encryption: self::slug(WordPressArray::string($data['encryption'] ?? 'tls')),
-            apiKey: WordPressArray::string($data['api_key'] ?? $data['apiKey'] ?? ''),
-            apiSecret: WordPressArray::string($data['api_secret'] ?? $data['apiSecret'] ?? ''),
+            apiKey: self::secret($data['api_key'] ?? $data['apiKey'] ?? ''),
+            apiSecret: self::secret($data['api_secret'] ?? $data['apiSecret'] ?? ''),
             domain: WordPressArray::string($data['domain'] ?? ''),
             region: WordPressArray::string($data['region'] ?? ''),
             tenantId: WordPressArray::string($data['tenant_id'] ?? $data['tenantId'] ?? ''),
@@ -62,7 +62,7 @@ final readonly class ConnectionConfig
             returnPath: WordPressArray::bool($data['return_path'] ?? $data['returnPath'] ?? false),
             autoTls: WordPressArray::bool($data['auto_tls'] ?? $data['autoTls'] ?? true),
             verifyPeer: WordPressArray::bool($data['verify_peer'] ?? $data['verifyPeer'] ?? true),
-            keyStore: self::keyStore(WordPressArray::string($data['key_store'] ?? $data['keyStore'] ?? 'option')),
+            keyStore: self::keyStore(WordPressArray::string($data['key_store'] ?? $data['keyStore'] ?? 'encrypted_option')),
             secretPrefix: self::secretPrefix(WordPressArray::string($data['secret_prefix'] ?? $data['secretPrefix'] ?? '')),
         );
     }
@@ -105,9 +105,14 @@ final readonly class ConnectionConfig
         return trim(is_string($slug) ? $slug : '', '-');
     }
 
+    private static function secret(mixed $value): string
+    {
+        return is_scalar($value) ? (string) $value : '';
+    }
+
     private static function keyStore(string $value): string
     {
-        $store = self::slug($value) ?: 'option';
+        $store = self::slug($value) ?: 'encrypted_option';
 
         return match ($store) {
             'encrypted-option', 'encryptedoption' => 'encrypted_option',

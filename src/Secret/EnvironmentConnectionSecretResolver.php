@@ -23,6 +23,9 @@ final class EnvironmentConnectionSecretResolver implements ConnectionSecretResol
     #[\Override]
     public function resolve(ConnectionConfig $connection): ConnectionConfig
     {
+        if (!in_array($connection->keyStore, ['env', 'wp_config', 'config'], true)) {
+            return $connection;
+        }
         $values = $connection->toArray();
 
         foreach (self::FIELDS as $field) {
@@ -85,6 +88,9 @@ final class EnvironmentConnectionSecretResolver implements ConnectionSecretResol
         $names = [];
 
         foreach ($prefixes as $prefix) {
+            if (preg_match('/^SYMPRESS_MAILER_[A-Z0-9_]+$/D', strtoupper($prefix)) !== 1) {
+                continue;
+            }
             $names[] = strtoupper($prefix) . '_' . $field;
         }
 
