@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use SymPress\Mailer\Application\MailerInterface;
 use SymPress\Mailer\Application\MailerService;
 use SymPress\Mailer\Config\ConnectionConfig;
+use SymPress\Mailer\Config\DeliverySettingsRepositoryInterface;
 use SymPress\Mailer\Config\MailerSettings;
 use SymPress\Mailer\Config\SettingsRepositoryInterface;
 use SymPress\Mailer\Hook\WordPressMailerBridge;
@@ -24,6 +25,38 @@ use SymPress\Mailer\Value\SendResult;
 
 final class WordPressMailerBridgeTest extends TestCase
 {
+    public function testBridgeAndServiceUseTheOptionalDeliveryView(): void
+    {
+        $repository = new class implements DeliverySettingsRepositoryInterface {
+            public int $editingReads = 0;
+            public int $deliveryReads = 0;
+
+            public function get(): MailerSettings
+            {
+                ++$this->editingReads;
+                return new MailerSettings(enabled: false);
+            }
+
+            public function getForDelivery(): MailerSettings
+            {
+                ++$this->deliveryReads;
+                return new MailerSettings(doNotSend: true);
+            }
+
+            public function save(MailerSettings $settings): void
+            {
+            }
+        };
+        $secrets = new EnvironmentConnectionSecretResolver();
+        $mailer = new MailerService($repository, new SymfonyEmailFactory(new NullEmailBodyProcessor(), new DefaultAttachmentPolicy()), new SymfonyMailerFactory(new DsnFactory($secrets), new ProviderApiTransportFactory($secrets)));
+        $bridge = new WordPressMailerBridge($repository, new WordPressMailParser(), $mailer);
+
+        self::assertTrue($bridge->send(null, ['to' => 'ada@example.test', 'subject' => 'Suppressed delivery', 'message' => 'Hello']));
+        self::assertSame('suppressed', $mailer->send(new WordPressMail(['ada@example.test'], 'Service delivery', 'Hello'))->status);
+        self::assertSame(0, $repository->editingReads);
+        self::assertSame(2, $repository->deliveryReads);
+    }
+
     public function testHookInputReachesTheConfiguredMailer(): void
     {
         $settings = new class implements SettingsRepositoryInterface {

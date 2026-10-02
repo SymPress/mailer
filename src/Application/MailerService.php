@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SymPress\Mailer\Application;
 
+use SymPress\Mailer\Config\DeliverySettings;
 use SymPress\Mailer\Config\SettingsRepositoryInterface;
 use SymPress\Mailer\Message\SymfonyEmailFactory;
 use SymPress\Mailer\Message\WordPressMail;
@@ -22,7 +23,7 @@ final readonly class MailerService implements MailerInterface
     #[\Override]
     public function send(WordPressMail $mail): SendResult
     {
-        $settings = $this->settingsRepository->get();
+        $settings = DeliverySettings::read($this->settingsRepository);
 
         if ($settings->doNotSend) {
             return SendResult::suppressed('do_not_send');

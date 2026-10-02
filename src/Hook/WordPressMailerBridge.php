@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SymPress\Mailer\Hook;
 
 use SymPress\Mailer\Application\MailerInterface;
+use SymPress\Mailer\Config\DeliverySettings;
 use SymPress\Mailer\Config\SettingsRepositoryInterface;
 use SymPress\Mailer\Message\WordPressMailParser;
 use SymPress\Mailer\Support\MailerRuntimeGuard;
@@ -27,7 +28,7 @@ final readonly class WordPressMailerBridge
         }
 
         try {
-            $settings = $this->settingsRepository->get();
+            $settings = DeliverySettings::read($this->settingsRepository);
         } catch (\Throwable) {
             if (function_exists('do_action')) {
                 do_action('wp_mail_failed', new \WP_Error('wp_mail_failed', 'Mailer credentials are unavailable.', $atts));
