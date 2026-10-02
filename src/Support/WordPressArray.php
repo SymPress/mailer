@@ -9,6 +9,7 @@ final class WordPressArray
     /** @return array<string, mixed> */
     public static function post(): array
     {
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Extraction helper only; admin mutation callers assert capability/checkNonce before field validation, while SettingsScope only classifies scope.
         $post = $_POST;
 
         if (function_exists('wp_unslash')) {
@@ -21,6 +22,7 @@ final class WordPressArray
     /** @return array<string, mixed> */
     public static function get(): array
     {
+        // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Display-only extraction; callers allowlist tabs/notices, escape output, and perform no mutation.
         $get = $_GET;
 
         if (function_exists('wp_unslash')) {
