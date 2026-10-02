@@ -39,6 +39,19 @@ final class NativeMailContractTest extends TestCase
         }
     }
 
+    public function testHtmlTextAlternativeUsesNativeWordPressScriptAndStyleRemoval(): void
+    {
+        $factory = new SymfonyEmailFactory(new NullEmailBodyProcessor(), new DefaultAttachmentPolicy());
+        $email = $factory->create(
+            new \SymPress\Mailer\Message\WordPressMail(['reader@example.test'], 'HTML', '<style>private-style</style><script>private-script</script><p>Hello &amp; welcome</p>', contentType: 'text/html'),
+            new \SymPress\Mailer\Config\ConnectionConfig(id: 'primary', fromEmail: 'sender@example.test'),
+            new MailerSettings(),
+            'archive-text-regression',
+        );
+        self::assertSame('Hello & welcome', $email->getTextBody());
+        self::assertStringContainsString('<p>Hello &amp; welcome</p>', $email->getHtmlBody());
+    }
+
     public function testPlaintextOptionsMigrateAndPasswordWhitespaceSurvives(): void
     {
         update_option('mailer_review_secrets', ['connection' => ['id'=>'primary','provider'=>'smtp','password'=>"  option-canary  ",'key_store'=>'option']]);

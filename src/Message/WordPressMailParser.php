@@ -230,6 +230,7 @@ final class WordPressMailParser
             return '';
         }
 
+        // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_debug_backtrace -- Bounded source-plugin attribution; arguments are excluded, frames are not logged, and only a relative plugin slug is returned.
         foreach (debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 25) as $frame) {
             $file = isset($frame['file']) && is_string($frame['file']) ? $frame['file'] : '';
 

@@ -1,6 +1,6 @@
 {
     "name": "sympress-mailer",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "Admin assets for the SymPress Mailer WordPress plugin.",
     "license": "GPL-2.0-or-later",
     "private": true,

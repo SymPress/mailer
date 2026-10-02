@@ -180,7 +180,11 @@ final readonly class SymfonyEmailFactory
 
     private function textFallback(string $html): string
     {
-        $text = html_entity_decode(strip_tags($html), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = function_exists('wp_strip_all_tags')
+            ? wp_strip_all_tags($html)
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.strip_tags_strip_tags -- WordPress-free mail creation fallback.
+            : strip_tags($html);
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
         $text = preg_replace('/[ \t]+/', ' ', $text);
         $text = preg_replace('/\n{3,}/', "\n\n", is_string($text) ? $text : '');
 
