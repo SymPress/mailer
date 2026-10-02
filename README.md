@@ -36,7 +36,7 @@ The core package depends on `symfony/mailer` and accepts any valid Symfony Maile
 Admin assets are built with Symfony Webpack Encore:
 
 ```sh
-npm install
+npm ci
 npm run build
 ```
 

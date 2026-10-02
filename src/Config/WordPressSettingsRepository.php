@@ -18,7 +18,8 @@ final readonly class WordPressSettingsRepository implements SettingsRepositoryIn
     {
         $data = [];
 
-        if ($this->usesNetworkOptions()) {
+        $network = $this->usesNetworkOptions(true);
+        if ($network) {
             $option = get_site_option($this->optionName, []);
             $data = is_array($option) ? $option : [];
         } elseif (function_exists('get_option')) {
@@ -28,7 +29,7 @@ final readonly class WordPressSettingsRepository implements SettingsRepositoryIn
 
         $plain = $this->mapSecrets($data, false);
         if ($this->needsMigration($data)) {
-            $this->write($this->mapSecrets($plain, true), $data);
+            $this->write($this->mapSecrets($plain, true), $data, $network);
         }
         $data = $plain;
         if (function_exists('apply_filters')) {
@@ -60,10 +61,10 @@ final readonly class WordPressSettingsRepository implements SettingsRepositoryIn
      * @param array<string, mixed> $data
      * @param array<string, mixed>|null $previous
      */
-    private function write(array $data, ?array $previous = null): void
+    private function write(array $data, ?array $previous = null, ?bool $network = null): void
     {
         $wpdb = $GLOBALS['wpdb'] ?? null;
-        $network = $this->usesNetworkOptions();
+        $network ??= $this->usesNetworkOptions();
         if ($previous !== null && $wpdb instanceof \wpdb) {
             // A migration must never overwrite an administrator's concurrent update.
             $changed = $network
@@ -91,9 +92,18 @@ final readonly class WordPressSettingsRepository implements SettingsRepositoryIn
         }
     }
 
-    private function usesNetworkOptions(): bool
+    private function usesNetworkOptions(bool $read = false): bool
     {
-        return SettingsScope::network();
+        if (SettingsScope::network()) {
+            return true;
+        }
+
+        // Runtime delivery inherits network defaults only when the site has no override.
+        // Admin editing and all writes retain their explicit, capability-checked scope.
+        return $read && function_exists('is_multisite') && is_multisite()
+            && (!function_exists('is_admin') || !is_admin())
+            && get_option($this->optionName, null) === null
+            && is_array(get_site_option($this->optionName, null));
     }
 
     /**

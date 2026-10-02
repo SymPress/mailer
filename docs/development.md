@@ -1,11 +1,20 @@
 # Development
 
+The real WordPress suite creates and drops its own unique disposable schema.
+`SYMPRESS_MAILER_TEST_DB_HOST`, `SYMPRESS_MAILER_TEST_DB_USER` and
+`SYMPRESS_MAILER_TEST_DB_PASSWORD` optionally select an isolated MariaDB or MySQL
+server (the local default is `127.0.0.1:33079`, root, empty password).
+
 ## Install Dependencies
 
 ```sh
 composer install
-npm install
+npm ci
 ```
+
+Use Node.js 24. Admin tooling uses Encore 7, Babel 8 and Webpack CLI 6 with the
+committed npm lock. The previous Yarn lock is replaced so local builds, CI and
+audits use the same dependency graph.
 
 ## Build Admin Assets
 

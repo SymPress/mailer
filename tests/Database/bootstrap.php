@@ -7,14 +7,19 @@ $databaseName = getenv('SYMPRESS_MAILER_TEST_DB');
 if (!is_string($databaseName) || preg_match('/^sympress_review_mailer[a-z0-9_]+$/D', $databaseName) !== 1) {
     throw new RuntimeException('Set a unique disposable SYMPRESS_MAILER_TEST_DB schema.');
 }
-$connection = new mysqli('127.0.0.1', 'root', '', '', 33079);
+$databaseServer = getenv('SYMPRESS_MAILER_TEST_DB_HOST') ?: '127.0.0.1:33079';
+$databaseUser = getenv('SYMPRESS_MAILER_TEST_DB_USER') ?: 'root';
+$databasePassword = getenv('SYMPRESS_MAILER_TEST_DB_PASSWORD') ?: '';
+[$databaseHost, $databasePort] = array_pad(explode(':', $databaseServer, 2), 2, '3306');
+$connection = new mysqli($databaseHost, $databaseUser, $databasePassword, '', (int) $databasePort);
+$connection->query("SET SESSION sql_mode = ''"); // Disposable bootstrap seed, before WordPress applies its database modes.
 $connection->query('CREATE DATABASE `' . $databaseName . '`');
 $ownerPid = getmypid();
-register_shutdown_function(static function () use ($databaseName, $ownerPid): void {
+register_shutdown_function(static function () use ($databaseName, $databaseHost, $databasePort, $databaseUser, $databasePassword, $ownerPid): void {
     if (getmypid() !== $ownerPid) {
         return;
     }
-    (new mysqli('127.0.0.1', 'root', '', '', 33079))->query('DROP DATABASE IF EXISTS `' . $databaseName . '`');
+    (new mysqli($databaseHost, $databaseUser, $databasePassword, '', (int) $databasePort))->query('DROP DATABASE IF EXISTS `' . $databaseName . '`');
 });
 // Seed only the network bootstrap identity before WordPress installs its canonical schema.
 $connection->select_db($databaseName);
@@ -32,9 +37,9 @@ $_SERVER['REQUEST_URI'] = '/';
 $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1';
 define('ABSPATH', dirname(__DIR__, 2) . '/vendor/wordpress/wordpress/');
 define('DB_NAME', $databaseName);
-const DB_USER = 'root';
-const DB_PASSWORD = '';
-const DB_HOST = '127.0.0.1:33079';
+define('DB_USER', $databaseUser);
+define('DB_PASSWORD', $databasePassword);
+define('DB_HOST', $databaseServer);
 const DB_CHARSET = 'utf8mb4';
 const DB_COLLATE = '';
 const WP_INSTALLING = true;

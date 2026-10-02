@@ -6,7 +6,7 @@ Thanks for taking the time to improve SymPress Mailer.
 
 ```bash
 composer install
-npm install
+npm ci
 composer test
 composer static-analysis
 composer cs
