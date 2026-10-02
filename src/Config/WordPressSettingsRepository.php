@@ -7,7 +7,7 @@ namespace SymPress\Mailer\Config;
 use SymPress\Mailer\Secret\SecretCipher;
 use SymPress\Mailer\Secret\SecretFields;
 
-final readonly class WordPressSettingsRepository implements SettingsRepositoryInterface
+final readonly class WordPressSettingsRepository implements DeliverySettingsRepositoryInterface
 {
     public function __construct(
         private string $optionName,
@@ -16,9 +16,19 @@ final readonly class WordPressSettingsRepository implements SettingsRepositoryIn
 
     public function get(): MailerSettings
     {
+        return $this->read();
+    }
+
+    public function getForDelivery(): MailerSettings
+    {
+        return $this->read(delivery: true);
+    }
+
+    private function read(bool $delivery = false): MailerSettings
+    {
         $data = [];
 
-        $network = $this->usesNetworkOptions(true);
+        $network = $this->usesNetworkOptions(true, $delivery);
         if ($network) {
             $option = get_site_option($this->optionName, []);
             $data = is_array($option) ? $option : [];
@@ -92,7 +102,7 @@ final readonly class WordPressSettingsRepository implements SettingsRepositoryIn
         }
     }
 
-    private function usesNetworkOptions(bool $read = false): bool
+    private function usesNetworkOptions(bool $read = false, bool $delivery = false): bool
     {
         if (SettingsScope::network()) {
             return true;
@@ -101,7 +111,7 @@ final readonly class WordPressSettingsRepository implements SettingsRepositoryIn
         // Runtime delivery inherits network defaults only when the site has no override.
         // Admin editing and all writes retain their explicit, capability-checked scope.
         return $read && function_exists('is_multisite') && is_multisite()
-            && (!function_exists('is_admin') || !is_admin())
+            && ($delivery || !function_exists('is_admin') || !is_admin())
             && get_option($this->optionName, null) === null
             && is_array(get_site_option($this->optionName, null));
     }
