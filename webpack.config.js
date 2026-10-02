@@ -1,4 +1,4 @@
-const Encore = require('@symfony/webpack-encore');
+const Encore = require('@symfony/webpack-encore').default;
 
 const isProduction = Encore.isProduction();
 
@@ -12,6 +12,8 @@ Encore
     })
     .enableSourceMaps(!isProduction)
     .disableSingleRuntimeChunk()
-    .cleanupOutputBeforeBuild(['*.js', '*.css', 'entrypoints.json', 'manifest.json']);
+    .cleanupOutputBeforeBuild((options) => {
+        options.keep = (asset) => !/^(?:[^/]+\.(?:js|css)|entrypoints\.json|manifest\.json)$/.test(asset);
+    });
 
 module.exports = Encore.getWebpackConfig();

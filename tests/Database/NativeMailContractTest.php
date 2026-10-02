@@ -121,6 +121,44 @@ final class NativeMailContractTest extends TestCase
         $repository->get();
     }
 
+    public function testRuntimeInheritsNetworkDefaultsAndMigratesThemWithoutCreatingSiteOption(): void
+    {
+        update_site_option('mailer_review_inherited', ['connection' => ['provider' => 'smtp', 'host' => 'network.example.test', 'password' => 'network-runtime-canary']]);
+        set_current_screen('front');
+        wp_set_current_user(0);
+        $repository = new WordPressSettingsRepository('mailer_review_inherited');
+        self::assertSame('network.example.test', $repository->get()->defaultConnection()->host);
+        self::assertSame('network-runtime-canary', $repository->get()->defaultConnection()->password);
+        self::assertFalse(get_option('mailer_review_inherited', false));
+        self::assertStringStartsWith('enc:v2:', get_site_option('mailer_review_inherited')['connection']['password']);
+        update_option('mailer_review_inherited', ['connection' => ['host' => 'site.example.test']]);
+        self::assertSame('site.example.test', $repository->get()->defaultConnection()->host);
+        switch_to_blog(wp_insert_site(['domain' => DOMAIN_CURRENT_SITE, 'path' => '/inherit-review/']));
+        try {
+            self::assertSame('network.example.test', $repository->get()->defaultConnection()->host);
+        } finally {
+            restore_current_blog();
+        }
+    }
+
+    public function testConnectionDestinationChangesNeverPersistPreviousSecrets(): void
+    {
+        $repository = new WordPressSettingsRepository('mailer_review_destination');
+        $original = ['provider' => 'smtp', 'host' => 'old.example.test', 'password' => 'old-password-canary', 'api_key' => 'old-api-canary', 'dsn' => 'smtp://old-secret@old.example.test'];
+        $repository->save(MailerSettings::fromArray(['connection' => $original]));
+        foreach ([['host' => 'new.example.test'], ['provider' => 'postmark']] as $change) {
+            $submitted = \SymPress\Mailer\Secret\SecretFields::preserve([...$original, ...$change, 'password' => '', 'api_key' => '', 'dsn' => ''], $original);
+            $repository->save(MailerSettings::fromArray(['connection' => $submitted]));
+            self::assertSame('', $repository->get()->defaultConnection()->password);
+            self::assertSame('', $repository->get()->defaultConnection()->apiKey);
+            self::assertSame('', $repository->get()->defaultConnection()->dsn);
+            self::assertSame('', get_option('mailer_review_destination')['connections']['primary']['password']);
+        }
+        $fresh = \SymPress\Mailer\Secret\SecretFields::preserve(['provider' => 'smtp', 'host' => 'fresh.example.test', 'password' => 'new-password'], $original);
+        self::assertSame('new-password', $fresh['password']);
+        self::assertSame('', $fresh['api_key']);
+    }
+
     public function testNetworkFormSavePersistsNetworkOptionAndReturnsToNetworkAdmin(): void
     {
         $GLOBALS['current_screen'] = \WP_Screen::get('dashboard');

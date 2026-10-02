@@ -22,11 +22,19 @@ final class SecretFields
     public static function preserve(array $submitted, array $previous): array
     {
         $clear = is_array($submitted['_clear_secrets'] ?? null) ? $submitted['_clear_secrets'] : [];
+        $destinationChanged = false;
+        foreach (['provider', 'host'] as $destination) {
+            if (!isset($submitted[$destination]) || !is_string($submitted[$destination]) || !is_string($previous[$destination] ?? null)) {
+                continue;
+            }
+            $destinationChanged = $destinationChanged || strtolower(trim($submitted[$destination])) !== strtolower(trim($previous[$destination]));
+        }
         foreach ([...self::CONNECTION, ...self::ALERT, 'alert_webhooks'] as $field) {
             if (!empty($clear[$field])) {
                 $submitted[$field] = $field === 'alert_webhooks' ? [] : '';
             } elseif (!isset($submitted[$field]) || $submitted[$field] === '' || $submitted[$field] === []) {
-                $submitted[$field] = $previous[$field] ?? ($field === 'alert_webhooks' ? [] : '');
+                $submitted[$field] = $destinationChanged && in_array($field, self::CONNECTION, true)
+                    ? '' : ($previous[$field] ?? ($field === 'alert_webhooks' ? [] : ''));
             }
         }
         unset($submitted['_clear_secrets']);

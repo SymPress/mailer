@@ -80,7 +80,16 @@ the replacement configuration.
 Network admin forms carry an explicit network scope and scoped nonce through
 `admin-post.php`. Network settings require `manage_network_options`; a site
 administrator cannot select network scope. Saves return to the matching network
-admin screen. Site settings and network settings remain distinct scopes.
+admin screen. Site settings and network settings remain distinct scopes. Runtime
+delivery (frontend, cron and CLI) inherits the network option when the current
+site has no saved option; a saved site option is an explicit override. Admin
+screens continue to edit their own scope. Inherited plaintext migration updates
+the network option without creating a site override.
+
+Changing a connection's provider or SMTP host discards previously stored
+connection credentials when the secret inputs are blank. Enter new credentials
+for the new destination. Blank fields preserve credentials only while the
+destination remains unchanged, including backup and additional connections.
 
 The bridge preserves an earlier non-null `pre_wp_mail` result. It applies native
 From, name, content-type and charset filters and emits `wp_mail_succeeded` or a
