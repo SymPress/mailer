@@ -205,6 +205,7 @@ final readonly class SymfonyEmailFactory
                 'reply-to',
                 'content-type',
                 'mime-version',
+                'x-sympress-mailer-log-id',
             ],
             true,
         );

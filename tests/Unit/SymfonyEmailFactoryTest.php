@@ -14,6 +14,23 @@ use SymPress\Mailer\Message\WordPressMail;
 
 final class SymfonyEmailFactoryTest extends TestCase
 {
+    public function testCallerCannotSpoofOrDuplicateTheManagedLogId(): void
+    {
+        $email = $this->factory()->create(
+            new WordPressMail(
+                to: ['reader@example.test'],
+                subject: 'Managed header',
+                message: 'Body',
+                headers: ['x-sympress-mailer-log-id' => ['spoofed'], 'X-SymPress-Mailer-Log-ID' => ['duplicate']],
+            ),
+            new ConnectionConfig(id: 'primary', fromEmail: 'team@example.test'),
+            new MailerSettings(),
+            'actual-log-id',
+        );
+        self::assertCount(1, iterator_to_array($email->getHeaders()->all('X-SymPress-Mailer-Log-ID')));
+        self::assertSame('actual-log-id', $email->getHeaders()->get('X-SymPress-Mailer-Log-ID')?->getBodyAsString());
+    }
+
     public function testReportsBlockedAttachmentWithoutAddingItToEmail(): void
     {
         $GLOBALS['sympress_mailer_test_actions'] = [];
