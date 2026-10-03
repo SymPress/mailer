@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.1.3 — 2026-10-03
+
+- Reserve the internal diagnostic header case-insensitively so caller-supplied
+  headers cannot spoof or duplicate the durable message log ID.
+- Update the TypeScript loader to remove high build-tool advisories.
+
 ## 0.1.2 — 2026-10-02
 
 - Runtime delivery inherits network configuration when the site has no override. Changing provider or host clears preserved credentials. The production asset toolchain is rebuilt with a peer-compatible dependency graph and zero npm audit findings.
