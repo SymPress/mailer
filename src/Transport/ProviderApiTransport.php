@@ -8,6 +8,7 @@ use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Support\Json;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Exception\HttpTransportException;
+use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\Mailer\SentMessage;
 use Symfony\Component\Mailer\Transport\AbstractApiTransport;
 use Symfony\Component\Mime\Address;
@@ -74,6 +75,10 @@ final class ProviderApiTransport extends AbstractApiTransport
             );
         }
 
+        if ($this->connection->provider === 'smtp2go') {
+            $this->checkSmtp2goAcceptance($body, $email, $response);
+        }
+
         $messageId = $this->messageId($body);
 
         if ($messageId !== '') {
@@ -133,6 +138,8 @@ final class ProviderApiTransport extends AbstractApiTransport
             ['X-Smtp2go-Api-Key' => $this->connection->apiKey],
             [
                 'sender'         => $this->formatAddress($this->sender($email)),
+                // Require synchronous recipient outcomes even if the provider changes its default.
+                'fastaccept'     => false,
                 'to'             => $this->formatAddresses($email->getTo()),
                 'cc'             => $this->formatAddresses($email->getCc()),
                 'bcc'            => $this->formatAddresses($email->getBcc()),
@@ -191,6 +198,28 @@ final class ProviderApiTransport extends AbstractApiTransport
     private function sender(Email $email): Address
     {
         return $email->getFrom()[0] ?? new Address('wordpress@localhost', 'WordPress');
+    }
+
+    /** @param array<string, mixed> $body */
+    private function checkSmtp2goAcceptance(array $body, Email $email, ResponseInterface $response): void
+    {
+        $data = $body['data'] ?? null;
+        $recipients = count($email->getTo()) + count($email->getCc()) + count($email->getBcc());
+        if (
+            !is_array($data) || !is_int($data['succeeded'] ?? null) || !is_int($data['failed'] ?? null)
+            || $data['succeeded'] < 0 || $data['failed'] < 0
+            || $data['succeeded'] + $data['failed'] !== $recipients
+        ) {
+            throw new TransportException('SMTP2GO acceptance cannot be verified; operator reconciliation is required.');
+        }
+        if ($data['succeeded'] === 0 && $data['failed'] > 0) {
+            // Do not expose provider failure text, addresses, or message content in logs.
+            throw new RejectedDeliveryException(sprintf('SMTP2GO rejected all %d recipients.', $recipients), $response);
+        }
+        if ($data['failed'] > 0 || !is_array($data['failures'] ?? null) || $data['failures'] !== []) {
+            // Retrying the complete envelope would duplicate delivery to accepted recipients.
+            throw new TransportException('SMTP2GO delivery is partial or inconsistent; operator reconciliation is required.');
+        }
     }
 
     /**
@@ -387,6 +416,9 @@ final class ProviderApiTransport extends AbstractApiTransport
     /** @param array<string, mixed> $body */
     private function messageId(array $body): string
     {
+        if ($this->connection->provider === 'smtp2go' && is_array($body['data'] ?? null) && is_scalar($body['data']['email_id'] ?? null)) {
+            return (string) $body['data']['email_id'];
+        }
         foreach (['message_id', 'messageId', 'request_id'] as $key) {
             if (is_scalar($body[$key] ?? null)) {
                 return (string) $body[$key];
