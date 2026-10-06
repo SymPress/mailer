@@ -7,7 +7,9 @@ namespace SymPress\Mailer\Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Transport\ProviderApiTransport;
+use SymPress\Mailer\Transport\RejectedDeliveryException;
 use Symfony\Component\Mailer\Exception\HttpTransportException;
+use Symfony\Component\Mailer\Exception\TransportException;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 use Symfony\Component\Mime\Email;
@@ -56,7 +58,7 @@ final class ProviderApiTransportTest extends TestCase
             new MockHttpClient(static function (string $method, string $url, array $options) use (&$requests): MockResponse {
                 $requests[] = [$method, $url, $options];
 
-                return new MockResponse('{"data":{"email_id":"email-123"}}', ['http_code' => 200]);
+                return new MockResponse('{"request_id":"request-123","data":{"email_id":"email-123","succeeded":1,"failed":0,"failures":[]}}', ['http_code' => 200]);
             }),
         );
 
@@ -96,5 +98,51 @@ final class ProviderApiTransportTest extends TestCase
         $this->expectExceptionMessage('tosend API returned HTTP 401: bad token');
 
         $transport->send($message);
+    }
+
+    public function testSmtp2goRejectsHttpSuccessWhenNoRecipientWasAccepted(): void
+    {
+        $transport = $this->smtp2goTransport('{"data":{"succeeded":0,"failed":1,"failures":["private rejection detail"]}}');
+        $this->expectException(RejectedDeliveryException::class);
+        $this->expectExceptionMessage('SMTP2GO rejected all 1 recipients.');
+        $transport->send($this->email());
+    }
+
+    public function testPartialAcceptanceCannotBeRetriedAsACompleteRejection(): void
+    {
+        $transport = $this->smtp2goTransport('{"data":{"succeeded":1,"failed":1,"failures":["private detail"]}}');
+        try {
+            $transport->send($this->email()->addTo('other@example.test'));
+            self::fail('Partial delivery must not be reported as sent.');
+        } catch (TransportException $error) {
+            self::assertNotInstanceOf(RejectedDeliveryException::class, $error);
+            self::assertStringContainsString('reconciliation', $error->getMessage());
+            self::assertStringNotContainsString('private detail', $error->getMessage());
+        }
+    }
+
+    public function testMissingOrInconsistentAcceptanceCountsFailClosed(): void
+    {
+        foreach (['{}', '{"data":{"email_id":"id"}}', '{"data":{"succeeded":0,"failed":0}}', '{"data":{"succeeded":1,"failed":1}}'] as $body) {
+            try {
+                $this->smtp2goTransport($body)->send($this->email());
+                self::fail('A response without complete acceptance evidence cannot be sent.');
+            } catch (TransportException $error) {
+                self::assertNotInstanceOf(RejectedDeliveryException::class, $error);
+            }
+        }
+    }
+
+    private function smtp2goTransport(string $body): ProviderApiTransport
+    {
+        return new ProviderApiTransport(
+            new ConnectionConfig(id: 'primary', provider: 'smtp2go', apiKey: 'fixture-key'),
+            new MockHttpClient(static fn (): MockResponse => new MockResponse($body, ['http_code' => 200])),
+        );
+    }
+
+    private function email(): Email
+    {
+        return (new Email())->from('team@example.test')->to('ops@example.test')->subject('Status')->text('OK');
     }
 }
