@@ -37,6 +37,26 @@ npm run typecheck
 
 Use `composer tests` for the unit test suite only.
 
+## Native Provider Recording
+
+`composer tests:recording` exercises ToSend and SMTP2GO with Symfony's native
+`RecorderHttpClient` and an explicit `RecorderConfiguration`. It records synthetic
+responses from `MockHttpClient` to a private temporary HAR file, then replays the
+same provider request. The inner replay client throws if called; a missing entry
+must raise `HarEntryNotFoundException` without reaching it. No email or provider
+network request is sent. Existing unit payload and provider-error tests still run
+through `composer tests`.
+
+The optional suite requires HttpClient 8.2's recorder API and fails on a skip when
+that API is unavailable. Symfony 8.2 is not yet stable as of 2026-10-09; ordinary
+QA continues to use the supported stable 8.1 dependencies. The package does not
+require a development dependency or the PHPUnit Bridge. Once 8.2 is stable, its
+native recording API is allowed by the existing `^8.1` constraint. The separate
+suite has been qualified against the upstream 8.2 source; that does not certify a
+stable 8.2 release. Upstream API changes before publication may require an update.
+
+Source: [Symfony PR 63781](https://github.com/symfony/symfony/pull/63781).
+
 ## Extension Points
 
 - Replace `SymPress\Mailer\Application\MailerInterface` to customize delivery.
