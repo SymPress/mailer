@@ -77,7 +77,8 @@
             "@static-analysis",
             "@tests"
         ],
-        "tests:database": "phpunit --configuration phpunit.database.xml.dist"
+        "tests:database": "phpunit --configuration phpunit.database.xml.dist",
+        "tests:recording": "phpunit --configuration phpunit.recording.xml.dist"
     },
     "config": {
         "sort-packages": true,

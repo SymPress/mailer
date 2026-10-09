@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.1.5 — 2026-10-09
+
+- Add a separate optional native HTTP record/replay suite for synthetic ToSend and SMTP2GO exchanges, including missing-record and network-fallback checks. Existing payload and error unit tests remain in normal QA.
+- Keep stable Symfony 8.1 dependencies; the native recorder suite requires the forthcoming 8.2 API and reports its absence explicitly.
+
 ## 0.1.4 — 2026-10-06
 
 - Request synchronous SMTP2GO processing and validate recipient acceptance counts.
