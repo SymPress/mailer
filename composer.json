@@ -16,7 +16,7 @@
         "symfony/http-client": "^8.1",
         "symfony/mailer": "^8.1",
         "symfony/mime": "^8.1",
-        "sympress/assets": "^1.2.1",
+        "sympress/assets": "^1.2.3",
         "sympress/kernel": "^1.1.1",
         "ext-openssl": "*"
     },
