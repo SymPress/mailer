@@ -13,9 +13,9 @@
     "require": {
         "php": "^8.5",
         "ext-json": "*",
-        "symfony/http-client": "^8.1",
+        "symfony/http-client": "^8.1.11",
         "symfony/mailer": "^8.1",
-        "symfony/mime": "^8.1",
+        "symfony/mime": "^8.1.10",
         "sympress/assets": "^1.2.3",
         "sympress/kernel": "^1.1.1",
         "ext-openssl": "*"

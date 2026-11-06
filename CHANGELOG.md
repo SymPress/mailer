@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.1.6 — 2026-11-06
+
+- Use the Symfony 8.1.11 security patches released on November 4.
+
 ## 0.1.5 — 2026-10-09
 
 - Add a separate optional native HTTP record/replay suite for synthetic ToSend and SMTP2GO exchanges, including missing-record and network-fallback checks. Existing payload and error unit tests remain in normal QA.
