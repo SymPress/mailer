@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.1.8 — 2026-11-15
+
+- Security: credentials from an external secret source (`env`, `wp_config`, `config`) are only sent to a destination from that same source. When a password, API key, API secret or DSN comes from there, the DSN, host, port, encryption, Auto TLS and Verify TLS Peer settings are read from it too and form values are ignored, so an administrator can no longer redirect the server-wide credentials to their own host. Missing values fall back to the provider's built-in host or API endpoint.
+- **Behaviour change:** setups that keep the password or API key in the environment but the host, port or DSN in the settings form must now define them externally as well, for example `SYMPRESS_MAILER_PRIMARY_HOST` and `SYMPRESS_MAILER_PRIMARY_PORT`. Other SMTP and Symfony DSN connections fail validation until they do; named SMTP and API providers use their default host or endpoint.
+
 ## 0.1.7 — 2026-11-15
 
 - Security: reject the sendmail `command` option in mail DSNs. Administrators could previously run shell commands through a crafted DSN; such DSNs now fail validation and are refused at send time.
