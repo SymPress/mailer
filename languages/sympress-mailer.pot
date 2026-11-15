@@ -4,39 +4,39 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/Admin/AdminPage.php:253
+#: src/Admin/AdminPage.php:256
 msgid "API Key"
 msgstr ""
 
-#: src/Admin/AdminPage.php:254
+#: src/Admin/AdminPage.php:257
 msgid "API Secret"
 msgstr ""
 
-#: src/Admin/AdminPage.php:269
+#: src/Admin/AdminPage.php:272
 msgid "Auto TLS"
 msgstr ""
 
-#: src/Admin/AdminPage.php:445
+#: src/Admin/AdminPage.php:448
 msgid "Clear stored secret"
 msgstr ""
 
-#: src/Admin/AdminPage.php:402
+#: src/Admin/AdminPage.php:405
 msgid "Connection health check passed."
 msgstr ""
 
-#: src/Admin/AdminPage.php:279
+#: src/Admin/AdminPage.php:282
 msgid "Delete Settings on Uninstall"
 msgstr ""
 
-#: src/Admin/AdminPage.php:355
+#: src/Admin/AdminPage.php:358
 msgid "Disabled"
 msgstr ""
 
-#: src/Admin/AdminPage.php:278
+#: src/Admin/AdminPage.php:281
 msgid "Do Not Send"
 msgstr ""
 
-#: src/Admin/AdminPage.php:255
+#: src/Admin/AdminPage.php:258
 msgid "Domain"
 msgstr ""
 
@@ -48,7 +48,7 @@ msgstr ""
 msgid "Enable Mailer"
 msgstr ""
 
-#: src/Admin/AdminPage.php:355
+#: src/Admin/AdminPage.php:358
 msgid "Enabled"
 msgstr ""
 
@@ -56,7 +56,7 @@ msgstr ""
 msgid "Encrypted option"
 msgstr ""
 
-#: src/Admin/AdminPage.php:252
+#: src/Admin/AdminPage.php:255
 msgid "Encryption"
 msgstr ""
 
@@ -64,35 +64,35 @@ msgstr ""
 msgid "Environment / constants"
 msgstr ""
 
-#: src/Admin/AdminPage.php:266
+#: src/Admin/AdminPage.php:269
 msgid "Force From Email"
 msgstr ""
 
-#: src/Admin/AdminPage.php:267
+#: src/Admin/AdminPage.php:270
 msgid "Force From Name"
 msgstr ""
 
-#: src/Admin/AdminPage.php:264
+#: src/Admin/AdminPage.php:267
 msgid "From Email"
 msgstr ""
 
-#: src/Admin/AdminPage.php:265
+#: src/Admin/AdminPage.php:268
 msgid "From Name"
 msgstr ""
 
-#: src/Admin/AdminPage.php:368
+#: src/Admin/AdminPage.php:371
 msgid "General"
 msgstr ""
 
-#: src/Admin/AdminPage.php:368
+#: src/Admin/AdminPage.php:371
 msgid "Import"
 msgstr ""
 
-#: src/Admin/AdminPage.php:306
+#: src/Admin/AdminPage.php:309
 msgid "Import Connection"
 msgstr ""
 
-#: src/Admin/AdminPage.php:288
+#: src/Admin/AdminPage.php:291
 msgid "Import Existing SMTP Settings"
 msgstr ""
 
@@ -104,7 +104,7 @@ msgstr ""
 msgid "Mailer"
 msgstr ""
 
-#: src/Admin/AdminPage.php:277 src/Admin/AdminPage.php:368
+#: src/Admin/AdminPage.php:280 src/Admin/AdminPage.php:368
 msgid "Misc"
 msgstr ""
 
@@ -112,15 +112,15 @@ msgstr ""
 msgid "No importable mailer connection was found for this source."
 msgstr ""
 
-#: src/Admin/AdminPage.php:291
+#: src/Admin/AdminPage.php:294
 msgid "No supported SMTP plugin settings were detected. Supported import sources are Fluent SMTP, WP Mail SMTP, Easy WP SMTP and Post SMTP."
 msgstr ""
 
-#: src/Admin/AdminPage.php:252
+#: src/Admin/AdminPage.php:255
 msgid "None"
 msgstr ""
 
-#: src/Admin/AdminPage.php:251
+#: src/Admin/AdminPage.php:254
 msgid "Password"
 msgstr ""
 
@@ -132,15 +132,15 @@ msgstr ""
 msgid "Recipient"
 msgstr ""
 
-#: src/Admin/AdminPage.php:259 src/Admin/AdminPage.php:261
+#: src/Admin/AdminPage.php:262 src/Admin/AdminPage.php:261
 msgid "Region"
 msgstr ""
 
-#: src/Admin/AdminPage.php:248
+#: src/Admin/AdminPage.php:251
 msgid "SMTP Host"
 msgstr ""
 
-#: src/Admin/AdminPage.php:249
+#: src/Admin/AdminPage.php:252
 msgid "SMTP Port"
 msgstr ""
 
@@ -160,7 +160,7 @@ msgstr ""
 msgid "Send Test Email"
 msgstr ""
 
-#: src/Admin/AdminPage.php:268
+#: src/Admin/AdminPage.php:271
 msgid "Set Return-Path"
 msgstr ""
 
@@ -168,27 +168,27 @@ msgstr ""
 msgid "Settings"
 msgstr ""
 
-#: src/Admin/AdminPage.php:389
+#: src/Admin/AdminPage.php:392
 msgid "Settings saved."
 msgstr ""
 
-#: src/Admin/AdminPage.php:353
+#: src/Admin/AdminPage.php:356
 msgid "SymPress Mailer"
 msgstr ""
 
-#: src/Admin/AdminPage.php:477
+#: src/Admin/AdminPage.php:480
 msgid "SymPress Mailer validation failed"
 msgstr ""
 
-#: src/Admin/AdminPage.php:247
+#: src/Admin/AdminPage.php:250
 msgid "Symfony DSN"
 msgstr ""
 
-#: src/Admin/AdminPage.php:353
+#: src/Admin/AdminPage.php:356
 msgid "Symfony Mailer delivery for WordPress."
 msgstr ""
 
-#: src/Admin/AdminPage.php:263
+#: src/Admin/AdminPage.php:266
 msgid "Tenant ID"
 msgstr ""
 
@@ -196,10 +196,14 @@ msgstr ""
 msgid "Tools"
 msgstr ""
 
-#: src/Admin/AdminPage.php:250
+#: src/Admin/AdminPage.php:253
 msgid "Username"
 msgstr ""
 
-#: src/Admin/AdminPage.php:270
+#: src/Admin/AdminPage.php:273
 msgid "Verify TLS Peer"
+msgstr ""
+
+#: src/Admin/AdminPage.php:248
+msgid "When a password, API key or DSN comes from this external source, the DSN, host, port, encryption and TLS settings are read from the same source and the values below are ignored. Without an external host, the provider's default endpoint is used."
 msgstr ""
