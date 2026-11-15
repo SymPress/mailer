@@ -50,6 +50,16 @@ final class ConnectionValidatorTest extends TestCase
         self::assertTrue($result->valid(), $result->message());
     }
 
+    public function testRejectsDsnWithCommandOption(): void
+    {
+        $result = $this->validator()->validate(
+            new ConnectionConfig(id: 'primary', provider: 'dsn', dsn: 'sendmail://default?command=/bin/id'),
+        );
+
+        self::assertFalse($result->valid());
+        self::assertArrayHasKey('dsn', $result->errors);
+    }
+
     public function testAcceptsCustomApiProviderWithRequiredCredentials(): void
     {
         $result = $this->validator()->validate(

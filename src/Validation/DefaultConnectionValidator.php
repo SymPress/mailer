@@ -8,6 +8,7 @@ use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Provider\ProviderRegistryInterface;
 use SymPress\Mailer\Secret\ConnectionSecretResolverInterface;
 use SymPress\Mailer\Secret\EnvironmentConnectionSecretResolver;
+use SymPress\Mailer\Transport\DsnFactory;
 
 final readonly class DefaultConnectionValidator implements ConnectionValidatorInterface
 {
@@ -54,6 +55,10 @@ final readonly class DefaultConnectionValidator implements ConnectionValidatorIn
 
                 $errors[(string) $field][] = 'Must be one of: ' . implode(', ', array_keys($options)) . '.';
             }
+        }
+
+        if ($connection->dsn !== '' && DsnFactory::hasCommandOption($connection->dsn)) {
+            $errors['dsn'][] = 'The "command" option is not allowed in mail DSNs.';
         }
 
         if ($connection->fromEmail !== '' && filter_var($connection->fromEmail, FILTER_VALIDATE_EMAIL) === false) {
