@@ -244,6 +244,9 @@ final readonly class AdminPage
         $this->providerHelp($connection);
         $this->select('key_store', __('Secret Source', 'sympress-mailer'), $connection->keyStore, ['encrypted_option' => __('Encrypted option', 'sympress-mailer'), 'env' => __('Environment / constants', 'sympress-mailer'), 'wp_config' => 'wp-config.php constants', 'config' => __('Kernel config / filter', 'sympress-mailer')]);
         $this->input('secret_prefix', __('Secret Prefix', 'sympress-mailer'), $connection->secretPrefix);
+        if (in_array($connection->keyStore, ['env', 'wp_config', 'config'], true)) {
+            echo '<p class="description">' . esc_html__('When a password, API key or DSN comes from this external source, the DSN, host, port, encryption and TLS settings are read from the same source and the values below are ignored. Without an external host, the provider\'s default endpoint is used.', 'sympress-mailer') . '</p>';
+        }
         $this->input('dsn', __('Symfony DSN', 'sympress-mailer'), $connection->dsn);
         $this->input('host', __('SMTP Host', 'sympress-mailer'), $connection->host);
         $this->input('port', __('SMTP Port', 'sympress-mailer'), (string) $connection->port, 'number');
