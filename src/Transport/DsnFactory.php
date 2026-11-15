@@ -19,6 +19,10 @@ final class DsnFactory
         $connection = $this->secretResolver?->resolve($connection) ?? $connection;
 
         if ($connection->dsn !== '') {
+            if (self::hasCommandOption($connection->dsn)) {
+                throw new \InvalidArgumentException('Mail DSNs must not set the "command" option.');
+            }
+
             return $connection->dsn;
         }
 
@@ -38,6 +42,30 @@ final class DsnFactory
             'microsoftgraph', 'microsoft-graph', 'outlook', 'microsoft-365' => $this->microsoftGraphDsn($connection),
             default => $this->smtpDsn($connection),
         };
+    }
+
+    /**
+     * Symfony's sendmail transport runs the "command" option via proc_open, so a DSN entered
+     * in the admin UI would grant shell access. Mirrors Symfony's DSN split (space and ")")
+     * and parse_str decoding, so encoded keys and failover()/roundrobin() wrappers are covered.
+     */
+    public static function hasCommandOption(#[\SensitiveParameter] string $dsn): bool
+    {
+        foreach (preg_split('/[ )]+/', $dsn) ?: [] as $part) {
+            $queryStart = strpos($part, '?');
+
+            if ($queryStart === false) {
+                continue;
+            }
+
+            parse_str(substr($part, $queryStart + 1), $options);
+
+            if (array_key_exists('command', $options)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function smtpDsn(ConnectionConfig $connection): string
