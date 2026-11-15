@@ -18,6 +18,20 @@ final class EnvironmentConnectionSecretResolver implements ConnectionSecretResol
         'domain',
         'region',
         'tenant_id',
+        'port',
+        'encryption',
+        'auto_tls',
+        'verify_peer',
+    ];
+
+    private const array CREDENTIAL_FIELDS = ['dsn', 'password', 'api_key', 'api_secret'];
+
+    private const array DESTINATION_DEFAULTS = [
+        'dsn'         => '',
+        'host'        => '',
+        'encryption'  => 'tls',
+        'auto_tls'    => true,
+        'verify_peer' => true,
     ];
 
     #[\Override]
@@ -26,7 +40,7 @@ final class EnvironmentConnectionSecretResolver implements ConnectionSecretResol
         if (!in_array($connection->keyStore, ['env', 'wp_config', 'config'], true)) {
             return $connection;
         }
-        $values = $connection->toArray();
+        $external = [];
 
         foreach (self::FIELDS as $field) {
             $secret = $this->secret($connection, $field);
@@ -35,7 +49,16 @@ final class EnvironmentConnectionSecretResolver implements ConnectionSecretResol
                 continue;
             }
 
-            $values[$field] = $secret;
+            $external[$field] = $secret;
+        }
+
+        $values = [...$connection->toArray(), ...$external];
+
+        if (array_intersect_key($external, array_flip(self::CREDENTIAL_FIELDS)) !== []) {
+            // Form-supplied destinations could redirect an externally stored credential, so the
+            // destination comes from the same source or falls back to the provider's built-in default.
+            $values = [...$values, ...self::DESTINATION_DEFAULTS, ...$external];
+            $values['port'] = $external['port'] ?? (in_array(strtolower((string) $values['encryption']), ['ssl', 'smtps'], true) ? 465 : 587);
         }
 
         return ConnectionConfig::fromArray($values, $connection->id);

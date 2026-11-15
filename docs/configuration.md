@@ -54,6 +54,16 @@ secret sources removes abandoned option credentials. Environment/constants
 prefixes must start with `SYMPRESS_MAILER_`; arbitrary WordPress constants cannot
 be selected through the settings form.
 
+When a password, API key, API secret or DSN is read from an external source
+(`env`, `wp_config` or `config`), the destination is bound to that source too:
+`DSN`, `HOST`, `PORT`, `ENCRYPTION`, `AUTO_TLS` and `VERIFY_PEER` are read from
+the same candidate names (for example `SYMPRESS_MAILER_PRIMARY_HOST`) and the
+settings form values are ignored. Missing values fall back to the defaults
+(`tls`, TLS checks on, port 587, or 465 for `ssl`) and to the provider's
+built-in host or API endpoint. Providers without one, such as **Other SMTP**
+and **Symfony DSN**, fail validation until the host or DSN is defined
+externally.
+
 Stored secrets are never rendered into input values or connection-library JSON.
 A blank secret field preserves the old value. Use its **Clear stored secret**
 checkbox to delete it. Password, API-key and DSN whitespace is significant and
