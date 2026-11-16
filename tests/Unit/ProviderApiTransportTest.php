@@ -145,4 +145,59 @@ final class ProviderApiTransportTest extends TestCase
     {
         return (new Email())->from('team@example.test')->to('ops@example.test')->subject('Status')->text('OK');
     }
+
+    public function testRejectsPlainHttpEndpointOverride(): void
+    {
+        $requests = 0;
+        $transport = $this->tosendTransport('http://8.8.8.8/v2/emails', $requests);
+
+        try {
+            $transport->send($this->message());
+            self::fail('Expected the http:// endpoint to be rejected.');
+        } catch (TransportException $exception) {
+            self::assertStringContainsString('https://', $exception->getMessage());
+        }
+
+        self::assertSame(0, $requests);
+    }
+
+    public function testBlocksPrivateNetworkEndpointOverride(): void
+    {
+        $requests = 0;
+        $transport = $this->tosendTransport('https://169.254.169.254/latest', $requests);
+
+        try {
+            $transport->send($this->message());
+            self::fail('Expected the link-local endpoint to be blocked.');
+        } catch (\Symfony\Component\HttpClient\Exception\TransportException $exception) {
+            self::assertStringContainsString('169.254.169.254', $exception->getMessage());
+        }
+
+        self::assertSame(0, $requests);
+    }
+
+    public function testSendsToPublicEndpointOverride(): void
+    {
+        $requests = 0;
+
+        self::assertNotNull($this->tosendTransport('https://8.8.8.8/v2/emails', $requests)->send($this->message()));
+        self::assertSame(1, $requests);
+    }
+
+    private function tosendTransport(string $host, int &$requests): ProviderApiTransport
+    {
+        return new ProviderApiTransport(
+            new ConnectionConfig(id: 'primary', provider: 'tosend', host: $host, apiKey: 'test-key'),
+            new MockHttpClient(static function () use (&$requests): MockResponse {
+                ++$requests;
+
+                return new MockResponse('{"message_id":"msg_1"}', ['http_code' => 200]);
+            }),
+        );
+    }
+
+    private function message(): Email
+    {
+        return (new Email())->from('team@example.test')->to('ada@example.test')->subject('Hi')->text('Hi');
+    }
 }

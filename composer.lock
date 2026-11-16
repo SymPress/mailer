@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5549da4fd74e6c0d0786e2e2df623b1b",
+    "content-hash": "453593dc42029fa7eda0aa1bf0db3120",
     "packages": [
         {
             "name": "doctrine/lexer",
@@ -5039,7 +5039,8 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-10-24T11:36:00+00:00"
+            "time": "2026-10-24T11:36:00+00:00",
+            "published-time": "2026-10-24T11:36:12+00:00"
         },
         {
             "name": "phpstan/phpstan-deprecation-rules",

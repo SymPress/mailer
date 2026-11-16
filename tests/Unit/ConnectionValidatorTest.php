@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SymPress\Mailer\Tests\Unit;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Provider\DefaultProviderRegistry;
@@ -129,6 +130,37 @@ final class ConnectionValidatorTest extends TestCase
 
         self::assertFalse($result->valid());
         self::assertArrayHasKey('key_store', $result->errors);
+    }
+
+    #[DataProvider('unsafeApiEndpoints')]
+    public function testRejectsUnsafeApiEndpoint(string $host): void
+    {
+        $result = $this->validator()->validate(
+            new ConnectionConfig(id: 'primary', provider: 'tosend', host: $host, apiKey: 'key'),
+        );
+
+        self::assertFalse($result->valid());
+        self::assertArrayHasKey('host', $result->errors);
+    }
+
+    /** @return iterable<string, array{string}> */
+    public static function unsafeApiEndpoints(): iterable
+    {
+        yield 'plain http' => ['http://8.8.8.8/v2/emails'];
+        yield 'metadata service' => ['https://169.254.169.254/latest'];
+        yield 'loopback' => ['127.0.0.1'];
+        yield 'private network' => ['https://10.0.0.5/send'];
+        yield 'ipv6 loopback' => ['https://[::1]/send'];
+        yield 'credentials in url' => ['https://user:pass@8.8.8.8/send'];
+    }
+
+    public function testAcceptsPublicHttpsApiEndpoint(): void
+    {
+        $result = $this->validator()->validate(
+            new ConnectionConfig(id: 'primary', provider: 'tosend', host: 'https://8.8.8.8/v2/emails', apiKey: 'key'),
+        );
+
+        self::assertTrue($result->valid(), $result->message());
     }
 
     private function validator(): DefaultConnectionValidator

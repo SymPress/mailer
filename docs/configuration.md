@@ -16,6 +16,12 @@ The primary connection supports:
 
 If a raw DSN is present, it wins over provider-specific fields.
 
+For the built-in API providers (Cloudflare, ToSend, SMTP2GO, Pepipost,
+ZeptoMail/TransMail), the host field overrides the API endpoint. Overrides must
+use `https://` and resolve to a public address; loopback, private, link-local
+and other reserved ranges are rejected on save and blocked again at send time,
+including after redirects.
+
 ## Provider Bridges
 
 The package requires `symfony/mailer` and suggests the optional Symfony provider
