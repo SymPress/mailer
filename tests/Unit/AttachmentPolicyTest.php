@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace SymPress\Mailer\Tests\Unit;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use SymPress\Mailer\Message\DefaultAttachmentPolicy;
 
@@ -53,5 +54,38 @@ final class AttachmentPolicyTest extends TestCase
             @unlink($path);
             @rmdir($dir);
         }
+    }
+
+    #[DataProvider('sensitiveFiles')]
+    public function testBlocksSensitiveFiles(string $relativePath, string $reason): void
+    {
+        $dir = sys_get_temp_dir() . '/spm-attachment-policy-' . bin2hex(random_bytes(4));
+        $path = $dir . '/' . $relativePath;
+        mkdir(dirname($path), 0o777, true);
+        file_put_contents($path, 'secret');
+
+        try {
+            $policy = new DefaultAttachmentPolicy();
+
+            self::assertFalse($policy->allowed($path));
+            self::assertSame($reason, $policy->rejectionReason($path));
+        } finally {
+            @unlink($path);
+            @rmdir(dirname($path));
+            @rmdir($dir);
+        }
+    }
+
+    /** @return iterable<string, array{string, string}> */
+    public static function sensitiveFiles(): iterable
+    {
+        $hidden = 'Hidden files and directories are blocked by attachment policy.';
+        $credential = 'Credential and debug log files are blocked by attachment policy.';
+
+        yield 'dotenv file' => ['.env', $hidden];
+        yield 'file in dot directory' => ['.ssh/config', $hidden];
+        yield 'composer auth' => ['auth.json', $credential];
+        yield 'wordpress debug log' => ['debug.log', $credential];
+        yield 'ssh private key' => ['id_ed25519', $credential];
     }
 }

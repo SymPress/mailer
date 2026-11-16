@@ -6,6 +6,8 @@ namespace SymPress\Mailer\Message;
 
 final class DefaultAttachmentPolicy implements AttachmentPolicyInterface
 {
+    private const array SENSITIVE_NAMES = ['auth.json', 'debug.log', 'id_rsa', 'id_ecdsa', 'id_ed25519'];
+
     #[\Override]
     public function allowed(string $path): bool
     {
@@ -36,6 +38,15 @@ final class DefaultAttachmentPolicy implements AttachmentPolicyInterface
             return 'Sensitive web server config files are blocked by attachment policy.';
         }
 
+        // Dotfiles and dot-directories hold secrets (.env, .git, .ssh, .aws) and never legitimate attachments.
+        if (str_contains($realPath, DIRECTORY_SEPARATOR . '.')) {
+            return 'Hidden files and directories are blocked by attachment policy.';
+        }
+
+        if (in_array(basename($realPath), self::SENSITIVE_NAMES, true)) {
+            return 'Credential and debug log files are blocked by attachment policy.';
+        }
+
         foreach ($this->blockedPaths() as $blockedPath) {
             $blocked = realpath($blockedPath) ?: $blockedPath;
 
@@ -54,7 +65,7 @@ final class DefaultAttachmentPolicy implements AttachmentPolicyInterface
     /** @return list<string> */
     private function blockedPaths(): array
     {
-        $paths = ['/etc', '/proc', '/sys', '/dev', '/root'];
+        $paths = ['/etc', '/proc', '/sys', '/dev', '/root', '/var/log'];
 
         if (defined('ABSPATH')) {
             $paths[] = ABSPATH . 'wp-config.php';
