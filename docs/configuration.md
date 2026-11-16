@@ -16,6 +16,9 @@ The primary connection supports:
 
 If a raw DSN is present, it wins over provider-specific fields.
 
+SMTP credentials are never sent in plaintext: a connection with a password
+fails validation when neither SSL encryption nor Auto TLS is enabled.
+
 For the built-in API providers (Cloudflare, ToSend, SMTP2GO, Pepipost,
 ZeptoMail/TransMail), the host field overrides the API endpoint. Overrides must
 use `https://` and resolve to a public address; loopback, private, link-local

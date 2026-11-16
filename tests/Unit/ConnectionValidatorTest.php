@@ -163,6 +163,25 @@ final class ConnectionValidatorTest extends TestCase
         self::assertTrue($result->valid(), $result->message());
     }
 
+    public function testRejectsPlaintextSmtpCredentials(): void
+    {
+        $result = $this->validator()->validate(
+            new ConnectionConfig(id: 'primary', provider: 'smtp', host: 'smtp.example.test', username: 'user', password: 'secret', encryption: 'none', autoTls: false),
+        );
+
+        self::assertFalse($result->valid());
+        self::assertArrayHasKey('auto_tls', $result->errors);
+    }
+
+    public function testAcceptsSmtpCredentialsWithAutoTls(): void
+    {
+        $result = $this->validator()->validate(
+            new ConnectionConfig(id: 'primary', provider: 'smtp', host: 'smtp.example.test', username: 'user', password: 'secret', encryption: 'none'),
+        );
+
+        self::assertTrue($result->valid(), $result->message());
+    }
+
     private function validator(): DefaultConnectionValidator
     {
         return new DefaultConnectionValidator(
