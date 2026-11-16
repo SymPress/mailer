@@ -6,6 +6,8 @@ namespace SymPress\Mailer\Transport;
 
 use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Support\Json;
+use Symfony\Component\HttpClient\NoPrivateNetworkHttpClient;
+use Symfony\Component\HttpFoundation\IpUtils;
 use Symfony\Component\Mailer\Envelope;
 use Symfony\Component\Mailer\Exception\HttpTransportException;
 use Symfony\Component\Mailer\Exception\TransportException;
@@ -34,6 +36,26 @@ final class ProviderApiTransport extends AbstractApiTransport
         return in_array($provider, self::PROVIDERS, true);
     }
 
+    /**
+     * Save-time check for endpoint overrides, mirroring wp_http_validate_url(): https only, no
+     * credentials in the URL, and every resolved IPv4 address must be public.
+     * shortcut: IPv6-only hosts are rejected (gethostbynamel), resolve AAAA records if a provider needs them.
+     */
+    public static function isPublicHttpsEndpoint(string $host): bool
+    {
+        // phpcs:ignore WordPress.WP.AlternativeFunctions.parse_url_parse_url -- The transport also runs outside WordPress; PHP ^8.5 parse_url() is consistent.
+        $parts = parse_url(str_contains($host, '://') ? $host : 'https://' . $host);
+
+        if (!is_array($parts) || strtolower($parts['scheme'] ?? '') !== 'https' || !isset($parts['host']) || isset($parts['user'])) {
+            return false;
+        }
+
+        $name = trim($parts['host'], '[]');
+        $ips = filter_var($name, FILTER_VALIDATE_IP) !== false ? [$name] : (gethostbynamel($name) ?: []);
+
+        return $ips !== [] && !array_any($ips, static fn (string $ip): bool => IpUtils::checkIp($ip, IpUtils::PRIVATE_SUBNETS));
+    }
+
     public function __toString(): string
     {
         return $this->connection->provider . '+api://default';
@@ -55,7 +77,9 @@ final class ProviderApiTransport extends AbstractApiTransport
             throw new \LogicException('Provider API transport requires an HTTP client.');
         }
 
-        $response = $this->client->request(
+        // A form-supplied endpoint must not reach internal services; the decorator re-checks every resolved IP and redirect.
+        $client = $this->connection->host !== '' ? new NoPrivateNetworkHttpClient($this->client) : $this->client;
+        $response = $client->request(
             'POST',
             $endpoint,
             [
@@ -382,7 +406,11 @@ final class ProviderApiTransport extends AbstractApiTransport
             return $default;
         }
 
-        if (str_starts_with($this->connection->host, 'https://') || str_starts_with($this->connection->host, 'http://')) {
+        if (str_contains($this->connection->host, '://')) {
+            if (!str_starts_with(strtolower($this->connection->host), 'https://')) {
+                throw new TransportException('Provider API endpoints must use https://.');
+            }
+
             return $this->connection->host;
         }
 

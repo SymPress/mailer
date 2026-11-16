@@ -9,6 +9,7 @@ use SymPress\Mailer\Provider\ProviderRegistryInterface;
 use SymPress\Mailer\Secret\ConnectionSecretResolverInterface;
 use SymPress\Mailer\Secret\EnvironmentConnectionSecretResolver;
 use SymPress\Mailer\Transport\DsnFactory;
+use SymPress\Mailer\Transport\ProviderApiTransport;
 
 final readonly class DefaultConnectionValidator implements ConnectionValidatorInterface
 {
@@ -59,6 +60,10 @@ final readonly class DefaultConnectionValidator implements ConnectionValidatorIn
 
         if ($connection->dsn !== '' && DsnFactory::hasCommandOption($connection->dsn)) {
             $errors['dsn'][] = 'The "command" option is not allowed in mail DSNs.';
+        }
+
+        if ($connection->host !== '' && ProviderApiTransport::supportsProvider($connection->provider) && !ProviderApiTransport::isPublicHttpsEndpoint($connection->host)) {
+            $errors['host'][] = 'API endpoints must use https:// and resolve to a public address.';
         }
 
         if ($connection->fromEmail !== '' && filter_var($connection->fromEmail, FILTER_VALIDATE_EMAIL) === false) {
