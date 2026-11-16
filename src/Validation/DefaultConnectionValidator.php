@@ -66,6 +66,11 @@ final readonly class DefaultConnectionValidator implements ConnectionValidatorIn
             $errors['host'][] = 'API endpoints must use https:// and resolve to a public address.';
         }
 
+        // smtp:// with auto_tls=false never upgrades to TLS, so Symfony would send SMTP AUTH in plaintext.
+        if ($connection->dsn === '' && $connection->password !== '' && !$connection->autoTls && str_starts_with((new DsnFactory())->create($connection), 'smtp://')) {
+            $errors['auto_tls'][] = 'Enable Auto TLS or SSL encryption; credentials must not be sent in plaintext.';
+        }
+
         if ($connection->fromEmail !== '' && filter_var($connection->fromEmail, FILTER_VALIDATE_EMAIL) === false) {
             $errors['from_email'][] = 'Must be a valid email address.';
         }
