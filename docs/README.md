@@ -7,6 +7,7 @@ keeping configuration in the SymPress kernel service container.
 
 - [Configuration](configuration.md)
 - [Hooks](hooks.md)
+- [Backward compatibility](stability.md)
 - [Development](development.md)
 
 ## Runtime Model
