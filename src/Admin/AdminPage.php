@@ -19,7 +19,9 @@ use SymPress\Mailer\Support\FailureReason;
 use SymPress\Mailer\Support\WordPressArray;
 use SymPress\Mailer\Validation\ConnectionHealthCheckerInterface;
 use SymPress\Mailer\Validation\ConnectionValidatorInterface;
+use SymPress\Mailer\Validation\SmtpConnectionProbe;
 
+// phpcs:ignore SymPress.Classes.ClassLength.TooLong -- Tools actions share the private nonce, redirect and Pro guards here; splitting the Tools screen out is a separate refactor.
 final readonly class AdminPage
 {
     private const string SLUG = 'sympress-mailer';
@@ -33,6 +35,7 @@ final readonly class AdminPage
         private ConnectionHealthCheckerInterface $healthChecker,
         private ConnectionImportService $imports,
         private ConnectionSecretResolverInterface $secretResolver,
+        private SmtpConnectionProbe $connectionProbe,
     ) {
     }
 
@@ -134,6 +137,8 @@ final readonly class AdminPage
             echo '<div class="notice notice-error inline"><p>' . $this->esc($message) . '</p></div>';
         }
 
+        $this->connectionCheckNotice();
+
         echo '<section class="spm-section">';
         echo '<h2>' . esc_html__('Email Test', 'sympress-mailer') . '</h2>';
         echo '<form method="post" action="' . $this->attr($this->adminPostUrl()) . '">';
@@ -141,6 +146,16 @@ final readonly class AdminPage
         $this->nonce('sympress_mailer_send_test');
         $this->input('to', __('Recipient', 'sympress-mailer'), $this->defaultRecipient(), 'email');
         echo '<p><button type="submit" class="button button-primary">' . esc_html__('Send Test Email', 'sympress-mailer') . '</button></p>';
+        echo '</form>';
+        echo '</section>';
+
+        echo '<section class="spm-section">';
+        echo '<h2>' . esc_html__('Connection Check', 'sympress-mailer') . '</h2>';
+        echo '<p class="description">' . esc_html__('Connects to the SMTP server and logs in without sending an email.', 'sympress-mailer') . '</p>';
+        echo '<form method="post" action="' . $this->attr($this->adminPostUrl()) . '">';
+        echo '<input type="hidden" name="action" value="sympress_mailer_check_connection">';
+        $this->nonce('sympress_mailer_check_connection');
+        echo '<p><button type="submit" class="button">' . esc_html__('Check Connection', 'sympress-mailer') . '</button></p>';
         echo '</form>';
         echo '</section>';
         $this->chromeEnd();
@@ -231,6 +246,28 @@ final readonly class AdminPage
         }
 
         $this->redirect(self::SLUG . '-tools', ['sympress_mailer_test' => $status]);
+    }
+
+    public function checkConnection(): void
+    {
+        if ($this->proPluginActive()) {
+            return;
+        }
+
+        $this->assertCapability();
+        $this->checkNonce('sympress_mailer_check_connection');
+
+        $health = $this->connectionProbe->probe($this->settingsRepository->get()->defaultConnection());
+
+        if (function_exists('set_transient')) {
+            set_transient($this->connectionCheckKey(), [
+                'healthy' => $health->healthy,
+                'checked' => ($health->context['checked'] ?? true) !== false,
+                'message' => $health->message,
+            ], 60);
+        }
+
+        $this->redirect(self::SLUG . '-tools', ['sympress_mailer_check' => '1']);
     }
 
     public function importConnection(): void
@@ -599,6 +636,37 @@ final readonly class AdminPage
     private function testFailureKey(): string
     {
         return 'sympress_mailer_test_failure_' . (function_exists('get_current_user_id') ? get_current_user_id() : 0);
+    }
+
+    private function connectionCheckKey(): string
+    {
+        return 'sympress_mailer_connection_check_' . (function_exists('get_current_user_id') ? get_current_user_id() : 0);
+    }
+
+    private function connectionCheckNotice(): void
+    {
+        if (WordPressArray::string(WordPressArray::get()['sympress_mailer_check'] ?? '') === '' || !function_exists('get_transient')) {
+            return;
+        }
+
+        $check = get_transient($this->connectionCheckKey());
+
+        if (!is_array($check)) {
+            return;
+        }
+
+        delete_transient($this->connectionCheckKey());
+        $message = WordPressArray::string($check['message'] ?? '');
+
+        if (($check['checked'] ?? true) === false) {
+            echo '<div class="notice notice-info inline"><p>' . esc_html__('This connection type cannot be checked without sending. Send a test email instead.', 'sympress-mailer') . '</p></div>';
+        } elseif (($check['healthy'] ?? false) === true) {
+            /* translators: %s: the result reported by the mail server check. */
+            echo '<div class="notice notice-success inline"><p>' . $this->esc(sprintf(__('Connection check passed: %s', 'sympress-mailer'), $message)) . '</p></div>';
+        } else {
+            /* translators: %s: the reason the connection check failed, e.g. a server error message. */
+            echo '<div class="notice notice-error inline"><p>' . $this->esc(sprintf(__('Connection check failed: %s', 'sympress-mailer'), $message)) . '</p></div>';
+        }
     }
 
     private function defaultRecipient(): string
