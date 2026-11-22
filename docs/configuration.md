@@ -126,6 +126,10 @@ and **Symfony DSN**, fail validation until the host or DSN is defined
 externally.
 
 Stored secrets are never rendered into input values or connection-library JSON.
+When a save fails validation or the health check, nothing is saved and the form
+returns to its tab with the messages and the submitted values, except the secret
+fields (DSN, username, password, API key and secret, domain, tenant ID): these
+are never kept between requests and must be entered again.
 A blank secret field preserves the old value. Use its **Clear stored secret**
 checkbox to delete it. Password, API-key and DSN whitespace is significant and
 preserved by the connection contract.
