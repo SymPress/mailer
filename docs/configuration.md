@@ -123,6 +123,11 @@ means accepted by the configured policy, including deliberately suppressed or
 queued mail. It does not establish inbox receipt. PHPMailer-specific mutation
 through `phpmailer_init` is not a Symfony transport extension point; use the
 Mailer interfaces instead. Plugin-source headers are not emitted.
+As in WordPress core, an invalid To, Cc, Bcc, Reply-To or forward address is
+skipped and the mail is sent to the remaining recipients; it fails only when no
+To, Cc or Bcc recipient remains. Each skipped address fires
+`sympress_mailer_recipient_skipped` with the log ID, the field (`to`, `cc`,
+`bcc` or `reply-to`), the address and the `WordPressMail`.
 
 Admin strings use the `sympress-mailer` text domain; the POT template is in
 `languages/`. Existing explicit body-retention choices are preserved; new

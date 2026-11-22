@@ -11,6 +11,7 @@ use SymPress\Mailer\Message\DefaultAttachmentPolicy;
 use SymPress\Mailer\Message\NullEmailBodyProcessor;
 use SymPress\Mailer\Message\SymfonyEmailFactory;
 use SymPress\Mailer\Message\WordPressMail;
+use Symfony\Component\Mailer\Transport\NullTransport;
 
 final class SymfonyEmailFactoryTest extends TestCase
 {
@@ -167,6 +168,58 @@ final class SymfonyEmailFactoryTest extends TestCase
         );
 
         self::assertSame('team@example.test', $email->getReturnPath()?->getAddress());
+    }
+
+    public function testSkipsInvalidRecipientsAndReportsEachOne(): void
+    {
+        $GLOBALS['sympress_mailer_test_actions'] = [];
+        $mail = new WordPressMail(
+            to: ['reader@example.test', 'not-an-address'],
+            subject: 'Recipients',
+            message: 'Body',
+            cc: ['broken@', 'copy@example.test'],
+            bcc: ['bad bcc'],
+            replyTo: ['reply@', 'answer@example.test'],
+        );
+
+        $email = $this->factory()->create(
+            $mail,
+            new ConnectionConfig(id: 'primary', fromEmail: 'team@example.test'),
+            new MailerSettings(forwardEmails: ['archive@example.test', 'forward@']),
+            'log-123',
+        );
+
+        self::assertSame(['reader@example.test'], array_map(static fn ($a) => $a->getAddress(), $email->getTo()));
+        self::assertSame(['copy@example.test'], array_map(static fn ($a) => $a->getAddress(), $email->getCc()));
+        self::assertSame(['archive@example.test'], array_map(static fn ($a) => $a->getAddress(), $email->getBcc()));
+        self::assertSame(['answer@example.test'], array_map(static fn ($a) => $a->getAddress(), $email->getReplyTo()));
+        self::assertSame(
+            [
+                ['sympress_mailer_recipient_skipped', ['log-123', 'to', 'not-an-address', $mail]],
+                ['sympress_mailer_recipient_skipped', ['log-123', 'cc', 'broken@', $mail]],
+                ['sympress_mailer_recipient_skipped', ['log-123', 'bcc', 'bad bcc', $mail]],
+                ['sympress_mailer_recipient_skipped', ['log-123', 'bcc', 'forward@', $mail]],
+                ['sympress_mailer_recipient_skipped', ['log-123', 'reply-to', 'reply@', $mail]],
+            ],
+            array_map(static fn (array $action) => [$action['hook'], $action['args']], $GLOBALS['sympress_mailer_test_actions']),
+        );
+    }
+
+    public function testMailWithoutAnyValidRecipientStillFailsToSend(): void
+    {
+        $email = $this->factory()->create(
+            new WordPressMail(to: ['not-an-address'], subject: 'Recipients', message: 'Body', cc: ['broken@']),
+            new ConnectionConfig(id: 'primary', fromEmail: 'team@example.test'),
+            new MailerSettings(),
+            'log-123',
+        );
+
+        self::assertSame([], $email->getTo());
+        self::assertSame([], $email->getCc());
+        self::assertSame([], $email->getBcc());
+
+        $this->expectException(\LogicException::class);
+        (new NullTransport())->send($email);
     }
 
     private function factory(): SymfonyEmailFactory

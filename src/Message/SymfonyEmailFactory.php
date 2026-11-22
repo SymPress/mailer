@@ -25,23 +25,23 @@ final readonly class SymfonyEmailFactory
         $email->subject($mail->subject);
 
         foreach ($mail->to as $address) {
-            $email->addTo($address);
+            $this->addAddress($email, 'to', $address, $mail, $logId);
         }
 
         foreach ($mail->cc as $address) {
-            $email->addCc($address);
+            $this->addAddress($email, 'cc', $address, $mail, $logId);
         }
 
         foreach ($mail->bcc as $address) {
-            $email->addBcc($address);
+            $this->addAddress($email, 'bcc', $address, $mail, $logId);
         }
 
         foreach ($settings->forwardEmails as $address) {
-            $email->addBcc($address);
+            $this->addAddress($email, 'bcc', $address, $mail, $logId);
         }
 
         foreach ($mail->replyTo as $address) {
-            $email->addReplyTo($address);
+            $this->addAddress($email, 'reply-to', $address, $mail, $logId);
         }
 
         $from = $this->from($mail, $connection);
@@ -132,6 +132,24 @@ final readonly class SymfonyEmailFactory
         $email->getHeaders()->addTextHeader('X-SymPress-Mailer-Log-ID', $logId);
 
         return $email;
+    }
+
+    /** @param 'to'|'cc'|'bcc'|'reply-to' $field */
+    private function addAddress(Email $email, string $field, string $address, WordPressMail $mail, string $logId): void
+    {
+        try {
+            match ($field) {
+                'to' => $email->addTo($address),
+                'cc' => $email->addCc($address),
+                'bcc' => $email->addBcc($address),
+                'reply-to' => $email->addReplyTo($address),
+            };
+        } catch (MimeException) {
+            // Like PHPMailer, skip an invalid recipient; Symfony still refuses a mail with none left.
+            if (function_exists('do_action')) {
+                do_action('sympress_mailer_recipient_skipped', $logId, $field, $address, $mail);
+            }
+        }
     }
 
     private function addHeader(Email $email, string $name, string $value): void
