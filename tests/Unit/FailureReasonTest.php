@@ -26,6 +26,18 @@ final class FailureReasonTest extends TestCase
         self::assertSame('Failed for *** AUTH *** *** *** *** ***', $reason);
     }
 
+    public function testCredentialsInsideADsnAreReplacedOnTheirOwn(): void
+    {
+        $connection = new ConnectionConfig(
+            id: 'primary',
+            dsn: 'failover(sendgrid+api://api-canary@default smtp://mailbox:pa%2Fss-canary@smtp.example.test:587)',
+        );
+
+        $reason = FailureReason::redact('401 for key api-canary; AUTH failed for mailbox with pa/ss-canary or pa%2Fss-canary', $connection);
+
+        self::assertSame('401 for key ***; AUTH failed for *** with *** or ***', $reason);
+    }
+
     public function testMessageIsCollapsedToOneLineAndCapped(): void
     {
         $reason = FailureReason::redact("  first\r\n\tsecond  " . str_repeat('x', 400), new ConnectionConfig(id: 'primary'));
