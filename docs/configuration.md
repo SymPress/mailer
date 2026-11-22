@@ -191,6 +191,7 @@ means accepted by the configured policy, including deliberately suppressed or
 queued mail. It does not establish inbox receipt. PHPMailer-specific mutation
 through `phpmailer_init` is not a Symfony transport extension point; use the
 Mailer interfaces instead. Plugin-source headers are not emitted.
+[Hooks](hooks.md) lists every hook the bridge honours or emits.
 As in WordPress core, an invalid To, Cc, Bcc, Reply-To or forward address is
 skipped and the mail is sent to the remaining recipients; it fails only when no
 To, Cc or Bcc recipient remains. Each skipped address fires

@@ -7,6 +7,10 @@ an extension point.
 ## Key paths
 
 - `src/Hook/WordPressMailerBridge.php`: thin `pre_wp_mail` boundary.
+- `src/Hook/SiteHealthCheck.php`: Site Health delivery test.
+- `src/Admin/`: `AdminPage` (settings), `ToolsPage` (test email, connection
+  check) and the shared `AdminScreenHelpers` trait.
+- `src/Console/`: `mailer:test` and `mailer:status` commands.
 - `src/Message/`: WordPress input parsing and Symfony email creation.
 - `src/Transport/`: DSN and provider transport behavior.
 - `src/Config/`: shared settings contract consumed by Mailer Pro.
@@ -26,14 +30,15 @@ an extension point.
 - Never log or expose credentials. Treat message bodies as sensitive; Mailer Pro
   persists them only when its `saveBody` setting is enabled.
 - `MailerRuntimeGuard::withoutInterception()` must restore state after failures.
-- Keep public interfaces and `MailerSettings` backward-compatible with
-  `sympress/mailer-pro`.
+- Keep the public surface in `docs/stability.md`, including the interfaces and
+  `MailerSettings`, backward-compatible with SymPress Mailer Pro.
 
 ## Cross-repository impact
 
-Mailer Pro replaces `MailerInterface` and `EmailBodyProcessorInterface` and
-extends the shared settings object. Search that repository before changing
-these contracts, service aliases, or serialized settings.
+SymPress Mailer Pro is a separate commercial package. It replaces
+`MailerInterface` and `EmailBodyProcessorInterface` and extends the shared
+settings object, so changing these contracts, service aliases, or serialized
+settings breaks it; treat them as public API.
 
 ## Definition of done
 
