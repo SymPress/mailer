@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.4.0 — 2026-11-22
+
+- New: `wp console mailer:test you@example.com` sends the test email from the command line, for deploy smoke tests, CI and servers without admin access. It prints whether the mail was sent, suppressed by "Do not send" or queued, and on failure the reason with credentials replaced by `***`. It exits with 0 when the mail was accepted, 1 when it failed and 2 for an invalid address, in which case nothing is sent.
+- New: `wp console mailer:status` shows the delivery configuration as seen at runtime (enabled, Do not send, provider, secret source, From address and force flags) and whether it is valid. `--probe` also runs the SMTP connection check. The DSN, username, password and API credentials are never printed. It exits with 1 when the settings cannot be read, for example because the encryption key is missing, when validation fails or when the probe fails.
+- Dependencies: `symfony/console` is a direct requirement (already installed through `sympress/kernel`).
+
 ## 0.3.0 — 2026-11-22
 
 - New: a "Check Connection" button on the Tools screen connects to the SMTP server, negotiates TLS and logs in with the saved credentials, then disconnects without sending mail. A wrong host, port, TLS mode or password now shows up without a test email. The check gives up after about 10 seconds, and credentials in the error message are replaced by `***`. API, native, sendmail and failover connections cannot be checked this way; the screen says so and suggests a test email instead.
