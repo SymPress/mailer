@@ -83,6 +83,9 @@ final readonly class SymfonyEmailFactory
         }
 
         foreach ($mail->headers as $name => $values) {
+            // PHP turns an all-digit header name into an int array key.
+            $name = (string) $name;
+
             if ($this->managedHeader($name)) {
                 continue;
             }
