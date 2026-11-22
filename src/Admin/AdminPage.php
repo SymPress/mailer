@@ -10,12 +10,9 @@ use SymPress\Mailer\Config\MailerSettings;
 use SymPress\Mailer\Config\SettingsRepositoryInterface;
 use SymPress\Mailer\Config\SettingsScope;
 use SymPress\Mailer\Import\ConnectionImportService;
-use SymPress\Mailer\Message\WordPressMail;
 use SymPress\Mailer\Provider\ProviderDefinition;
 use SymPress\Mailer\Provider\ProviderRegistryInterface;
-use SymPress\Mailer\Secret\ConnectionSecretResolverInterface;
 use SymPress\Mailer\Secret\SecretFields;
-use SymPress\Mailer\Support\FailureReason;
 use SymPress\Mailer\Support\WordPressArray;
 use SymPress\Mailer\Validation\ConnectionHealthCheckerInterface;
 use SymPress\Mailer\Validation\ConnectionValidatorInterface;
@@ -34,7 +31,6 @@ final readonly class AdminPage
         private ConnectionValidatorInterface $validator,
         private ConnectionHealthCheckerInterface $healthChecker,
         private ConnectionImportService $imports,
-        private ConnectionSecretResolverInterface $secretResolver,
         private SmtpConnectionProbe $connectionProbe,
     ) {
     }
@@ -213,28 +209,7 @@ final readonly class AdminPage
         $this->checkNonce('sympress_mailer_send_test');
 
         $to = WordPressArray::string(WordPressArray::post()['to'] ?? '');
-        $reason = '';
-        $capture = function (string $logId, \Throwable $error, WordPressMail $mail, ConnectionConfig $connection) use (&$reason): void {
-            try {
-                $reason = FailureReason::redact($error->getMessage(), $this->secretResolver->resolve($connection));
-            } catch (\Throwable) {
-                // Without resolved secrets the message cannot be redacted safely, so show none.
-                $reason = '';
-            }
-        };
-
-        if (function_exists('add_action')) {
-            add_action('sympress_mailer_delivery_failed', $capture, 10, 4);
-        }
-
-        try {
-            $result = $to !== '' ? $this->testEmailSender->send($to) : null;
-        } finally {
-            if (function_exists('remove_action')) {
-                remove_action('sympress_mailer_delivery_failed', $capture, 10);
-            }
-        }
-
+        [$result, $reason] = $to !== '' ? $this->testEmailSender->sendWithFailureReason($to) : [null, ''];
         $status = $result?->accepted === true ? 'sent' : 'failed';
 
         if (function_exists('set_transient')) {
