@@ -8,6 +8,7 @@ use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Config\MailerSettings;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Exception\ExceptionInterface as MimeException;
 use Symfony\Component\Mime\Part\DataPart;
 
 final readonly class SymfonyEmailFactory
@@ -58,10 +59,6 @@ final readonly class SymfonyEmailFactory
             $email->from($from);
         }
 
-        if ($connection->returnPath && $connection->fromEmail !== '') {
-            $email->returnPath($connection->fromEmail);
-        }
-
         $body = $mail->message;
         $contentType = $mail->contentType ?? 'text/plain';
         $charset = $mail->charset ?? (function_exists('get_bloginfo') ? get_bloginfo('charset') : 'UTF-8');
@@ -91,8 +88,13 @@ final readonly class SymfonyEmailFactory
             }
 
             foreach ($values as $value) {
-                $email->getHeaders()->addTextHeader($name, $value);
+                $this->addHeader($email, $name, $value);
             }
+        }
+
+        // Applied after caller headers so the configured return path beats a Return-Path header.
+        if ($connection->returnPath && $connection->fromEmail !== '') {
+            $email->returnPath($connection->fromEmail);
         }
 
         foreach ($mail->attachments as $attachment) {
@@ -127,6 +129,29 @@ final readonly class SymfonyEmailFactory
         $email->getHeaders()->addTextHeader('X-SymPress-Mailer-Log-ID', $logId);
 
         return $email;
+    }
+
+    private function addHeader(Email $email, string $name, string $value): void
+    {
+        $header = strtolower($name);
+
+        try {
+            if ($header === 'sender') {
+                $email->sender($value);
+            } elseif ($header === 'return-path') {
+                $email->returnPath($value);
+            } elseif ($header === 'date') {
+                // The optional weekday is dropped: PHP would shift a mismatching one to the next such day.
+                $date = date_create_immutable((string) preg_replace('/^\s*[a-z]{3},/i', '', $value));
+                if ($date !== false) {
+                    $email->date($date);
+                }
+            } else {
+                $email->getHeaders()->addTextHeader($name, $value);
+            }
+        } catch (MimeException) {
+            // Like PHPMailer, skip a header Symfony rejects instead of losing the whole mail.
+        }
     }
 
     private function reportBlockedAttachment(string $attachment, WordPressMail $mail, ConnectionConfig $connection, string $logId): void
