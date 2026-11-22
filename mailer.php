@@ -3,7 +3,7 @@
 /**
  * Plugin Name: SymPress Mailer
  * Description: Symfony Mailer powered SMTP and provider delivery for WordPress.
- * Version: 0.7.0
+ * Version: 0.7.1
  * Requires at least: 6.9
  * Requires PHP: 8.5
  * Author: Brian Schaeffner

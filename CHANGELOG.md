@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.7.1 — 2026-11-23
+
+- Fix: on multisite, uninstalling the plugin now checks every site in every network and every network on its own. Each saved setting is deleted exactly when its own "Delete Settings on Uninstall" option is on. Before, only the site the uninstall ran on was checked, so other sites that opted in kept their settings and encrypted credentials, and the network settings were deleted or kept depending on the main site's choice instead of the network's.
+
 ## 0.7.0 — 2026-11-23
 
 - New: the General tab shows only the connection fields the selected provider uses, so picking Postmark no longer shows SMTP host, port or a tenant ID. The sender settings are always shown, and the DSN field whenever a DSN is stored, because it wins over the other fields. Hidden fields keep their values and are saved unchanged. Tick "Show all fields" to reach the rest, for example the SMTP fallback of an API provider; it is ticked automatically when the form comes back after a rejected save. Without JavaScript all fields are shown as before.
