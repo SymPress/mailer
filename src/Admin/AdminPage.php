@@ -78,7 +78,7 @@ final readonly class AdminPage
 
         $this->chromeStart(__('Settings', 'sympress-mailer'), $settings);
         $this->tabs($tab);
-        $this->adminNotices($rejected['errors'] ?? null);
+        $this->adminNotices($rejected['errors'] ?? null, ($rejected['form'] ?? []) !== []);
 
         if ($tab === 'import') {
             $this->importTab();
@@ -314,7 +314,7 @@ final readonly class AdminPage
     }
 
     /** @param list<string>|null $errors Messages of a rejected submission, null when there was none. */
-    private function adminNotices(?array $errors = null): void
+    private function adminNotices(?array $errors = null, bool $formRestored = false): void
     {
         $get = WordPressArray::get();
 
@@ -323,7 +323,11 @@ final readonly class AdminPage
             foreach ($errors as $error) {
                 echo '<li>' . $this->esc($error) . '</li>';
             }
-            echo '</ul></div>';
+            echo '</ul>';
+            if ($formRestored) {
+                echo '<p>' . esc_html__('Passwords and keys are never kept from a rejected submission. Enter new ones again; blank fields keep the stored values.', 'sympress-mailer') . '</p>';
+            }
+            echo '</div>';
         }
 
         if (WordPressArray::bool($get['updated'] ?? false)) {
