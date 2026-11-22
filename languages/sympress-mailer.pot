@@ -16,25 +16,25 @@ msgstr ""
 msgid "Auto TLS"
 msgstr ""
 
-#: src/Admin/AdminPage.php:158
+#: src/Admin/ToolsPage.php:69
 msgid "Check Connection"
 msgstr ""
 
-#: src/Admin/AdminPage.php:448
+#: src/Admin/AdminScreenHelpers.php:55
 msgid "Clear stored secret"
 msgstr ""
 
-#: src/Admin/AdminPage.php:153
+#: src/Admin/ToolsPage.php:64
 msgid "Connection Check"
 msgstr ""
 
 #. translators: %s: the reason the connection check failed, e.g. a server error message.
-#: src/Admin/AdminPage.php:668
+#: src/Admin/ToolsPage.php:153
 msgid "Connection check failed: %s"
 msgstr ""
 
 #. translators: %s: the result reported by the mail server check.
-#: src/Admin/AdminPage.php:665
+#: src/Admin/ToolsPage.php:150
 msgid "Connection check passed: %s"
 msgstr ""
 
@@ -42,7 +42,7 @@ msgstr ""
 msgid "Connection health check passed."
 msgstr ""
 
-#: src/Admin/AdminPage.php:154
+#: src/Admin/ToolsPage.php:65
 msgid "Connects to the SMTP server and logs in without sending an email."
 msgstr ""
 
@@ -50,7 +50,7 @@ msgstr ""
 msgid "Delete Settings on Uninstall"
 msgstr ""
 
-#: src/Admin/AdminPage.php:358
+#: src/Admin/AdminScreenHelpers.php:24
 msgid "Disabled"
 msgstr ""
 
@@ -70,7 +70,7 @@ msgstr ""
 msgid "Email"
 msgstr ""
 
-#: src/Admin/AdminPage.php:124
+#: src/Admin/ToolsPage.php:54
 msgid "Email Test"
 msgstr ""
 
@@ -99,7 +99,7 @@ msgstr ""
 msgid "Enable Mailer"
 msgstr ""
 
-#: src/Admin/AdminPage.php:358
+#: src/Admin/AdminScreenHelpers.php:24
 msgid "Enabled"
 msgstr ""
 
@@ -183,7 +183,7 @@ msgstr ""
 msgid "Primary Connection"
 msgstr ""
 
-#: src/Admin/AdminPage.php:128
+#: src/Admin/ToolsPage.php:58
 msgid "Recipient"
 msgstr ""
 
@@ -211,7 +211,7 @@ msgstr ""
 msgid "Secret Source"
 msgstr ""
 
-#: src/Admin/AdminPage.php:129
+#: src/Admin/ToolsPage.php:59
 msgid "Send Test Email"
 msgstr ""
 
@@ -227,7 +227,7 @@ msgstr ""
 msgid "Settings saved."
 msgstr ""
 
-#: src/Admin/AdminPage.php:356
+#: src/Admin/AdminScreenHelpers.php:22
 msgid "SymPress Mailer"
 msgstr ""
 
@@ -247,7 +247,7 @@ msgstr ""
 msgid "Symfony DSN"
 msgstr ""
 
-#: src/Admin/AdminPage.php:356
+#: src/Admin/AdminScreenHelpers.php:22
 msgid "Symfony Mailer delivery for WordPress."
 msgstr ""
 
@@ -255,16 +255,16 @@ msgstr ""
 msgid "Tenant ID"
 msgstr ""
 
-#: src/Admin/AdminPage.php:126
+#: src/Admin/ToolsPage.php:40
 msgid "Test email failed."
 msgstr ""
 
 #. translators: %s: the reason the test email failed, e.g. a server error message.
-#: src/Admin/AdminPage.php:131
+#: src/Admin/ToolsPage.php:45
 msgid "Test email failed: %s"
 msgstr ""
 
-#: src/Admin/AdminPage.php:123
+#: src/Admin/ToolsPage.php:37
 msgid "Test email sent."
 msgstr ""
 
@@ -276,11 +276,11 @@ msgstr ""
 msgid "The mailer settings cannot be read"
 msgstr ""
 
-#: src/Admin/AdminPage.php:662
+#: src/Admin/ToolsPage.php:147
 msgid "This connection type cannot be checked without sending. Send a test email instead."
 msgstr ""
 
-#: src/Admin/AdminPage.php:62 src/Admin/AdminPage.php:63 src/Admin/AdminPage.php:115
+#: src/Admin/AdminPage.php:62 src/Admin/AdminPage.php:63 src/Admin/ToolsPage.php:33
 msgid "Tools"
 msgstr ""
 
