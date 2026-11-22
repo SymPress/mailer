@@ -16,12 +16,34 @@ msgstr ""
 msgid "Auto TLS"
 msgstr ""
 
+#: src/Admin/AdminPage.php:158
+msgid "Check Connection"
+msgstr ""
+
 #: src/Admin/AdminPage.php:448
 msgid "Clear stored secret"
 msgstr ""
 
+#: src/Admin/AdminPage.php:153
+msgid "Connection Check"
+msgstr ""
+
+#. translators: %s: the reason the connection check failed, e.g. a server error message.
+#: src/Admin/AdminPage.php:668
+msgid "Connection check failed: %s"
+msgstr ""
+
+#. translators: %s: the result reported by the mail server check.
+#: src/Admin/AdminPage.php:665
+msgid "Connection check passed: %s"
+msgstr ""
+
 #: src/Admin/AdminPage.php:405
 msgid "Connection health check passed."
+msgstr ""
+
+#: src/Admin/AdminPage.php:154
+msgid "Connects to the SMTP server and logs in without sending an email."
 msgstr ""
 
 #: src/Admin/AdminPage.php:282
@@ -203,6 +225,10 @@ msgstr ""
 
 #: src/Admin/AdminPage.php:123
 msgid "Test email sent."
+msgstr ""
+
+#: src/Admin/AdminPage.php:662
+msgid "This connection type cannot be checked without sending. Send a test email instead."
 msgstr ""
 
 #: src/Admin/AdminPage.php:62 src/Admin/AdminPage.php:63 src/Admin/AdminPage.php:115
