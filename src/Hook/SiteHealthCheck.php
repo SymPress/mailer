@@ -63,7 +63,7 @@ final readonly class SiteHealthCheck
         $provider = $this->providers->get($connection->provider)->title ?? $connection->provider;
 
         /* translators: %s: the mail provider name, e.g. "Postmark". */
-        return $this->result('good', __('Emails are delivered through SymPress Mailer', 'sympress-mailer'), sprintf(__('Emails are sent with the %s connection.', 'sympress-mailer'), $provider));
+        return $this->result('good', __('Emails are routed through SymPress Mailer', 'sympress-mailer'), sprintf(__('Emails are sent with the %s connection.', 'sympress-mailer'), $provider));
     }
 
     /**

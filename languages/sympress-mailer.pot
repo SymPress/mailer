@@ -79,7 +79,7 @@ msgid "Emails are accepted but not delivered to anyone."
 msgstr ""
 
 #: src/Hook/SiteHealthCheck.php:66
-msgid "Emails are delivered through SymPress Mailer"
+msgid "Emails are routed through SymPress Mailer"
 msgstr ""
 
 #. translators: %s: the mail provider name, e.g. "Postmark".
