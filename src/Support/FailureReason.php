@@ -14,14 +14,17 @@ final class FailureReason
     public static function redact(string $message, ConnectionConfig $connection): string
     {
         $secrets = [];
+        // An error can echo only the credential part of a DSN, so mask each user, key and password in it too.
+        preg_match_all('#://([^:@/\s]+)(?::([^@/\s]+))?@#', $connection->dsn, $userInfo);
 
-        foreach ([$connection->dsn, $connection->password, $connection->apiKey, $connection->apiSecret] as $secret) {
+        foreach ([$connection->dsn, $connection->password, $connection->apiKey, $connection->apiSecret, ...$userInfo[1], ...$userInfo[2]] as $secret) {
             if ($secret === '') {
                 continue;
             }
 
             $secrets[] = $secret;
             $secrets[] = rawurlencode($secret);
+            $secrets[] = rawurldecode($secret);
         }
 
         // Longest first, so a DSN is masked whole before the password inside it.
