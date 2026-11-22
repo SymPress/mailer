@@ -80,7 +80,7 @@ trait AdminScreenHelpers
     }
 
     /** @param array<string, string> $args */
-    private function redirect(string $page, array $args = []): void
+    private function redirect(string $page, array $args = []): never
     {
         $url = $this->adminUrl('admin.php', ['page' => $page, ...$args]);
 

@@ -74,10 +74,11 @@ final readonly class AdminPage
         $this->assertCapability();
         $settings = $this->settingsRepository->get();
         $tab = $this->currentTab();
+        $rejected = $this->takeRejectedSubmission();
 
         $this->chromeStart(__('Settings', 'sympress-mailer'), $settings);
         $this->tabs($tab);
-        $this->adminNotices();
+        $this->adminNotices($rejected['errors'] ?? null);
 
         if ($tab === 'import') {
             $this->importTab();
@@ -93,7 +94,7 @@ final readonly class AdminPage
         if ($tab === 'misc') {
             $this->miscTab($settings);
         } else {
-            $this->generalTab($settings);
+            $this->generalTab($this->withSubmittedForm($settings, $rejected['form'] ?? []));
         }
 
         echo '<p><button type="submit" class="button button-primary">' . esc_html__('Save Settings', 'sympress-mailer') . '</button></p>';
@@ -120,13 +121,10 @@ final readonly class AdminPage
             $data['uninstall_data'] = WordPressArray::bool($post['uninstall_data'] ?? false);
         } else {
             $connection = $this->connectionFromPost(SecretFields::preserve($post, $this->settingsRepository->get()->defaultConnection()->toArray()));
-            $validation = $this->validator->validate($connection);
-
-            if (!$validation->valid()) {
-                $this->failValidation($validation->message());
-            }
-
-            $this->assertConnectionHealthy($connection);
+            $this->assertConnectionAccepted($connection, 'general', [
+                'enabled'    => WordPressArray::bool($post['enabled'] ?? false),
+                'connection' => SecretFields::hidden($connection->toArray()),
+            ]);
             $data['enabled'] = WordPressArray::bool($post['enabled'] ?? false);
             $data['default_connection'] = 'primary';
             $data['connection'] = $connection->toArray();
@@ -156,16 +154,10 @@ final readonly class AdminPage
         $candidate = $this->imports->find($source);
 
         if ($candidate === null) {
-            $this->failValidation(__('No importable mailer connection was found for this source.', 'sympress-mailer'));
+            $this->rejectSubmission('import', __('No importable mailer connection was found for this source.', 'sympress-mailer'));
         }
 
-        $validation = $this->validator->validate($candidate->connection);
-
-        if (!$validation->valid()) {
-            $this->failValidation($validation->message());
-        }
-
-        $this->assertConnectionHealthy($candidate->connection);
+        $this->assertConnectionAccepted($candidate->connection, 'import');
         $data = $this->settingsRepository->get()->toArray();
         $data['enabled'] = true;
         $data['default_connection'] = 'primary';
@@ -321,9 +313,18 @@ final readonly class AdminPage
         return in_array($tab, ['general', 'import', 'misc'], true) ? $tab : 'general';
     }
 
-    private function adminNotices(): void
+    /** @param list<string>|null $errors Messages of a rejected submission, null when there was none. */
+    private function adminNotices(?array $errors = null): void
     {
         $get = WordPressArray::get();
+
+        if ($errors !== null) {
+            echo '<div class="notice notice-error inline"><p>' . esc_html__('The settings were not saved:', 'sympress-mailer') . '</p><ul>';
+            foreach ($errors as $error) {
+                echo '<li>' . $this->esc($error) . '</li>';
+            }
+            echo '</ul></div>';
+        }
 
         if (WordPressArray::bool($get['updated'] ?? false)) {
             echo '<div class="notice notice-success inline"><p>' . esc_html__('Settings saved.', 'sympress-mailer') . '</p></div>';
@@ -382,15 +383,73 @@ final readonly class AdminPage
         throw new \InvalidArgumentException($message);
     }
 
-    private function assertConnectionHealthy(ConnectionConfig $connection): void
+    /** @param array<string, mixed> $form Submitted values to show again; must not contain secrets. */
+    private function assertConnectionAccepted(ConnectionConfig $connection, string $tab, array $form = []): void
     {
+        $validation = $this->validator->validate($connection);
+
+        if (!$validation->valid()) {
+            $this->rejectSubmission($tab, $validation->message(), $form);
+        }
+
         $health = $this->healthChecker->check($connection);
 
         if ($health->healthy) {
             return;
         }
 
-        $this->failValidation($health->message);
+        $this->rejectSubmission($tab, $health->message, $form);
+    }
+
+    /** @param array<string, mixed> $form */
+    private function rejectSubmission(string $tab, string $message, array $form = []): never
+    {
+        if (!function_exists('set_transient')) {
+            $this->failValidation($message);
+        }
+
+        set_transient($this->rejectedSubmissionKey(), ['errors' => preg_split('/\R/', $message), 'form' => $form], 60);
+        $this->redirect(self::SLUG, ['tab' => $tab, 'invalid' => '1']);
+    }
+
+    /** @return array{errors: list<string>, form: array<string, mixed>}|null */
+    private function takeRejectedSubmission(): ?array
+    {
+        if (!WordPressArray::bool(WordPressArray::get()['invalid'] ?? false) || !function_exists('get_transient')) {
+            return null;
+        }
+
+        $stash = get_transient($this->rejectedSubmissionKey());
+        delete_transient($this->rejectedSubmissionKey());
+
+        if (!is_array($stash)) {
+            return null;
+        }
+
+        return [
+            'errors' => WordPressArray::stringList($stash['errors'] ?? []),
+            'form'   => is_array($stash['form'] ?? null) ? $stash['form'] : [],
+        ];
+    }
+
+    /** @param array<string, mixed> $form */
+    private function withSubmittedForm(MailerSettings $settings, array $form): MailerSettings
+    {
+        if (!is_array($form['connection'] ?? null)) {
+            return $settings;
+        }
+
+        return MailerSettings::fromArray([
+            ...$settings->toArray(),
+            'enabled'            => WordPressArray::bool($form['enabled'] ?? false),
+            'default_connection' => 'primary',
+            'connection'         => SecretFields::hidden($form['connection']),
+        ]);
+    }
+
+    private function rejectedSubmissionKey(): string
+    {
+        return 'sympress_mailer_rejected_settings_' . (function_exists('get_current_user_id') ? get_current_user_id() : 0);
     }
 
     /**
