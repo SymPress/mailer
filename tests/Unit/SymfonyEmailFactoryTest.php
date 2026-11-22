@@ -83,6 +83,91 @@ final class SymfonyEmailFactoryTest extends TestCase
         }
     }
 
+    public function testAppliesSenderDateAndReturnPathHeadersThroughTypedApi(): void
+    {
+        $email = $this->factory()->create(
+            new WordPressMail(
+                to: ['reader@example.test'],
+                subject: 'Typed headers',
+                message: 'Body',
+                headers: [
+                    'Sender' => ['first@example.test', 'bot@example.test'],
+                    // 1 Jan 2026 is a Thursday: a wrong weekday must not move the date.
+                    'Date' => ['Mon, 01 Jan 2026 00:00:00 +0000'],
+                    'Return-Path' => ['bounce@example.test'],
+                ],
+            ),
+            new ConnectionConfig(id: 'primary', fromEmail: 'team@example.test'),
+            new MailerSettings(),
+            'log-123',
+        );
+
+        self::assertSame('bot@example.test', $email->getSender()?->getAddress());
+        self::assertSame('2026-01-01T00:00:00+00:00', $email->getDate()?->format(DATE_ATOM));
+        self::assertSame('bounce@example.test', $email->getReturnPath()?->getAddress());
+        self::assertStringContainsString('Sender: bot@example.test', $email->toString());
+    }
+
+    public function testSkipsInvalidTypedHeaderValuesAndStillBuildsTheMail(): void
+    {
+        $email = $this->factory()->create(
+            new WordPressMail(
+                to: ['reader@example.test'],
+                subject: 'Invalid typed headers',
+                message: 'Body',
+                headers: [
+                    'Sender' => ['not an address'],
+                    'Date' => ['not a date'],
+                    'Return-Path' => ['not an address'],
+                ],
+            ),
+            new ConnectionConfig(id: 'primary', fromEmail: 'team@example.test'),
+            new MailerSettings(),
+            'log-123',
+        );
+
+        self::assertNull($email->getSender());
+        self::assertNull($email->getDate());
+        self::assertNull($email->getReturnPath());
+        self::assertStringContainsString('Subject: Invalid typed headers', $email->toString());
+    }
+
+    public function testSkipsMalformedHeaderNamesButKeepsValidCustomHeaders(): void
+    {
+        $email = $this->factory()->create(
+            new WordPressMail(
+                to: ['reader@example.test'],
+                subject: 'Malformed headers',
+                message: 'Body',
+                headers: ['' => ['value'], 'Bad Name' => ['value'], 'X-Custom' => ['kept']],
+            ),
+            new ConnectionConfig(id: 'primary', fromEmail: 'team@example.test'),
+            new MailerSettings(),
+            'log-123',
+        );
+
+        self::assertFalse($email->getHeaders()->has('Bad Name'));
+        self::assertSame('kept', $email->getHeaders()->get('X-Custom')?->getBodyAsString());
+        self::assertStringContainsString('X-Custom: kept', $email->toString());
+    }
+
+    public function testConfiguredReturnPathBeatsReturnPathHeader(): void
+    {
+        $email = $this->factory()->create(
+            new WordPressMail(
+                to: ['reader@example.test'],
+                subject: 'Return path',
+                message: 'Body',
+                headers: ['Return-Path' => ['bounce@example.test']],
+            ),
+            new ConnectionConfig(id: 'primary', fromEmail: 'team@example.test', returnPath: true),
+            new MailerSettings(),
+            'log-123',
+        );
+
+        self::assertSame('team@example.test', $email->getReturnPath()?->getAddress());
+    }
+
     private function factory(): SymfonyEmailFactory
     {
         return new SymfonyEmailFactory(new NullEmailBodyProcessor(), new DefaultAttachmentPolicy());
