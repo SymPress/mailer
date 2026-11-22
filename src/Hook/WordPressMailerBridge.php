@@ -55,7 +55,7 @@ final readonly class WordPressMailerBridge
         $data['embeds'] = $mail->embeds ?? [];
         $data['headers'] = [];
         foreach ($mail->headers ?? [] as $name => $values) {
-            if (in_array(strtolower($name), ['from', 'cc', 'bcc', 'reply-to', 'content-type'], true)) {
+            if (in_array(strtolower((string) $name), ['from', 'cc', 'bcc', 'reply-to', 'content-type'], true)) {
                 continue;
             }
             $data['headers'][$name] = end($values);

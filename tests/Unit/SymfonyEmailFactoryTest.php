@@ -139,7 +139,7 @@ final class SymfonyEmailFactoryTest extends TestCase
                 to: ['reader@example.test'],
                 subject: 'Malformed headers',
                 message: 'Body',
-                headers: ['' => ['value'], 'Bad Name' => ['value'], 'X-Custom' => ['kept']],
+                headers: ['' => ['value'], 'Bad Name' => ['value'], '123' => ['numeric'], 'X-Custom' => ['kept']],
             ),
             new ConnectionConfig(id: 'primary', fromEmail: 'team@example.test'),
             new MailerSettings(),
@@ -147,6 +147,7 @@ final class SymfonyEmailFactoryTest extends TestCase
         );
 
         self::assertFalse($email->getHeaders()->has('Bad Name'));
+        self::assertSame('numeric', $email->getHeaders()->get('123')?->getBodyAsString());
         self::assertSame('kept', $email->getHeaders()->get('X-Custom')?->getBodyAsString());
         self::assertStringContainsString('X-Custom: kept', $email->toString());
     }
