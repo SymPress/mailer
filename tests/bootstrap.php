@@ -47,6 +47,7 @@ if (!function_exists('update_option')) {
 }
 
 $GLOBALS['sympress_mailer_test_actions'] ??= [];
+$GLOBALS['sympress_mailer_test_hooks'] ??= [];
 
 if (!function_exists('do_action')) {
     function do_action(string $hook, mixed ...$args): void
@@ -55,5 +56,28 @@ if (!function_exists('do_action')) {
             'hook' => $hook,
             'args' => $args,
         ];
+
+        foreach ($GLOBALS['sympress_mailer_test_hooks'][$hook] ?? [] as $callback) {
+            $callback(...$args);
+        }
+    }
+}
+
+if (!function_exists('add_action')) {
+    function add_action(string $hook, callable $callback, int $priority = 10, int $acceptedArgs = 1): bool
+    {
+        $GLOBALS['sympress_mailer_test_hooks'][$hook][] = $callback;
+
+        return true;
+    }
+}
+
+if (!function_exists('remove_action')) {
+    function remove_action(string $hook, callable $callback, int $priority = 10): bool
+    {
+        $callbacks = $GLOBALS['sympress_mailer_test_hooks'][$hook] ?? [];
+        $GLOBALS['sympress_mailer_test_hooks'][$hook] = array_values(array_filter($callbacks, static fn (callable $registered): bool => $registered !== $callback));
+
+        return true;
     }
 }
