@@ -276,6 +276,10 @@ msgstr ""
 msgid "The mailer settings cannot be read"
 msgstr ""
 
+#: src/Admin/AdminPage.php:322
+msgid "The settings were not saved:"
+msgstr ""
+
 #: src/Admin/ToolsPage.php:147
 msgid "This connection type cannot be checked without sending. Send a test email instead."
 msgstr ""
