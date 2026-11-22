@@ -102,11 +102,12 @@ final class ProviderRegistryTest extends TestCase
         $registry = new DefaultProviderRegistry();
         $common = ['key_store', 'secret_prefix', 'from_email', 'from_name', 'force_from', 'force_from_name', 'return_path'];
         $smtpTransport = ['encryption', 'auto_tls', 'verify_peer'];
+        $smtpDestination = ['host', 'port', ...$smtpTransport];
 
         self::assertSame([...$common, 'host', 'port', 'username', 'password', ...$smtpTransport], $registry->get('smtp')?->formFields());
-        self::assertSame([...$common, 'username', 'password', 'api_key', ...$smtpTransport], $registry->get('elasticemail')?->formFields());
+        self::assertSame([...$common, 'username', 'password', 'api_key', ...$smtpDestination], $registry->get('elasticemail')?->formFields());
         self::assertSame([...$common, 'api_key', 'api_secret', 'region'], $registry->get('ses')?->formFields());
-        self::assertSame([...$common, 'api_key', 'tenant_id'], $registry->get('cloudflare')?->formFields());
+        self::assertSame([...$common, 'api_key', 'tenant_id', 'host'], $registry->get('cloudflare')?->formFields());
         self::assertSame([...$common, 'dsn'], $registry->get('dsn')?->formFields());
         self::assertSame($common, $registry->get('native')?->formFields());
     }
