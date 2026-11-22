@@ -193,6 +193,10 @@ msgstr ""
 msgid "Password"
 msgstr ""
 
+#: src/Admin/AdminPage.php:328
+msgid "Passwords and keys are never kept from a rejected submission. Enter new ones again; blank fields keep the stored values."
+msgstr ""
+
 #: src/Admin/AdminPage.php:230
 msgid "Primary Connection"
 msgstr ""
