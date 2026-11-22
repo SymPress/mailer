@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.5.0 — 2026-11-22
+
+- New: Tools > Site Health shows whether mail is actually delivered. It reports a critical issue when the settings cannot be read (for example because the encryption key is missing or changed), when "Do not send" is on in a production environment or when the connection fails validation, with the validation messages listed. A disabled mailer and "Do not send" outside production are reported as recommended improvements. Otherwise the test passes and names the provider. The test only validates the configuration, never connects to the mail server and never shows the DSN, username, password or API credentials.
+
 ## 0.4.0 — 2026-11-22
 
 - New: `wp console mailer:test you@example.com` sends the test email from the command line, for deploy smoke tests, CI and servers without admin access. It prints whether the mail was sent, suppressed by "Do not send" or queued, and on failure the reason with credentials replaced by `***`. It exits with 0 when the mail was accepted, 1 when it failed and 2 for an invalid address, in which case nothing is sent.
