@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.6.0 — 2026-11-23
+
+- New: when the connection settings fail validation or the health check, the settings screen now shows the messages in an error notice on the same tab instead of a separate error page, and the General tab keeps what you entered, so only the wrong field needs fixing. Passwords, API keys, API secrets, DSNs and the other secret fields are never kept or shown again and have to be re-entered. Nothing is saved, as before. A failed import also returns to the Import tab with the reason.
+- Fix: the remaining admin texts (the import notice, the provider documentation link, the tabs label and some option labels) are now translatable, and the Enabled/Disabled status is escaped.
+
 ## 0.5.1 — 2026-11-23
 
 - Changed: the admin screens were split into separate classes (Settings and Tools). No behaviour change.
