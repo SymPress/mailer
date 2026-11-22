@@ -129,6 +129,14 @@ To, Cc or Bcc recipient remains. Each skipped address fires
 `sympress_mailer_recipient_skipped` with the log ID, the field (`to`, `cc`,
 `bcc` or `reply-to`), the address and the `WordPressMail`.
 
+The `wp_mail_failed` error message is deliberately generic. To diagnose a
+failed delivery, listen to `sympress_mailer_delivery_failed`, which receives the
+log ID, the caught `Throwable`, the `WordPressMail` and the `ConnectionConfig`
+used. The exception message may contain provider or server response text, such
+as host names or addresses, so listeners must treat it as sensitive. The plugin
+logs nothing itself; the Tools screen uses this action to show the reason for a
+failed test email, with the connection's credentials replaced by `***`.
+
 Admin strings use the `sympress-mailer` text domain; the POT template is in
 `languages/`. Existing explicit body-retention choices are preserved; new
 settings default to no diagnostic body retention.

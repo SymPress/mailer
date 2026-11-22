@@ -37,7 +37,12 @@ final readonly class MailerService implements MailerInterface
             $this->mailerFactory->create($connection)->send($email);
 
             return SendResult::sent($logId, $connection->id);
-        } catch (\Throwable) {
+        } catch (\Throwable $error) {
+            // The wp_mail_failed message stays generic on purpose; integrators get the cause here.
+            if (function_exists('do_action')) {
+                do_action('sympress_mailer_delivery_failed', $logId, $error, $mail, $connection);
+            }
+
             return SendResult::failed($logId, 'Mail transport failed.');
         }
     }
