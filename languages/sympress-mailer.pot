@@ -249,6 +249,10 @@ msgstr ""
 msgid "Settings saved."
 msgstr ""
 
+#: src/Admin/AdminPage.php:194
+msgid "Show all fields"
+msgstr ""
+
 #: src/Admin/AdminPage.php:40 src/Admin/AdminScreenHelpers.php:22
 msgid "SymPress Mailer"
 msgstr ""

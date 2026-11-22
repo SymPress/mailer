@@ -16,6 +16,12 @@ The primary connection supports:
 
 If a raw DSN is present, it wins over provider-specific fields.
 
+With JavaScript enabled, the form shows only the fields the selected provider
+uses, plus the DSN field whenever a DSN is stored. Hidden fields keep their
+values and are saved unchanged. Tick "Show all fields" to reach the rest, for
+example the SMTP fallback of an API provider or an API endpoint override; it is
+pre-ticked when the form comes back after a rejected save.
+
 SMTP credentials are never sent in plaintext: a connection with a password
 fails validation when neither SSL encryption nor Auto TLS is enabled.
 

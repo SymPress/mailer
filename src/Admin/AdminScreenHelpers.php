@@ -33,7 +33,7 @@ trait AdminScreenHelpers
 
     private function switchRow(string $name, string $label, bool $checked): void
     {
-        echo '<label class="spm-switch-row"><span>' . $this->esc($label) . '</span><span class="spm-switch">';
+        echo '<label class="spm-switch-row" data-field="' . $this->attr(SecretFields::fieldName($name)) . '"><span>' . $this->esc($label) . '</span><span class="spm-switch">';
         echo '<input type="checkbox" name="' . $this->attr($name) . '" value="1"' . ($checked ? ' checked' : '') . '>';
         echo '<span></span></span></label>';
     }
@@ -45,7 +45,7 @@ trait AdminScreenHelpers
             $value = '';
             $type = 'password';
         }
-        echo '<label class="spm-field"><span>' . $this->esc($label) . '</span>';
+        echo '<label class="spm-field" data-field="' . $this->attr(SecretFields::fieldName($name)) . '"><span>' . $this->esc($label) . '</span>';
         echo '<input type="' . $this->attr($type) . '" name="' . $this->attr($name) . '" value="' . $this->attr($value) . '">';
         echo '</label>';
         if (!$secret) {

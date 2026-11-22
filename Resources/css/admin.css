@@ -415,6 +415,11 @@
     font-size: 12px;
 }
 
+/* Keeps [hidden] effective when a row's own class sets display. */
+.sympress-mailer .spm-provider-fields [hidden] {
+    display: none;
+}
+
 .spm-credentials {
     border-top: 1px solid var(--spm-border);
     margin-top: 18px;
