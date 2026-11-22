@@ -21,7 +21,7 @@ trait AdminScreenHelpers
         echo '<section class="spm-section spm-hero">';
         echo '<div><h1>' . esc_html__('SymPress Mailer', 'sympress-mailer') . '</h1><p>' . esc_html__('Symfony Mailer delivery for WordPress.', 'sympress-mailer') . '</p></div>';
         echo '<span class="spm-status ' . ($settings->enabled ? 'is-on' : 'is-off') . '">';
-        echo $settings->enabled ? __('Enabled', 'sympress-mailer') : __('Disabled', 'sympress-mailer');
+        echo $settings->enabled ? esc_html__('Enabled', 'sympress-mailer') : esc_html__('Disabled', 'sympress-mailer');
         echo '</span></section>';
         echo '<section class="spm-section spm-page-title"><h2>' . $this->esc($title) . '</h2></section>';
     }

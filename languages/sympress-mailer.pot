@@ -4,6 +4,11 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#. translators: %s: the mail provider name, e.g. "Postmark".
+#: src/Admin/AdminPage.php:357
+msgid "%s setup documentation"
+msgstr ""
+
 #: src/Admin/AdminPage.php:256
 msgid "API Key"
 msgstr ""
@@ -147,12 +152,21 @@ msgstr ""
 msgid "Import Existing SMTP Settings"
 msgstr ""
 
+#. translators: %s: the import source, e.g. "wp-mail-smtp".
+#: src/Admin/AdminPage.php:337
+msgid "Imported settings from %s."
+msgstr ""
+
 #: src/Admin/AdminPage.php:245
 msgid "Kernel config / filter"
 msgstr ""
 
 #: src/Admin/AdminPage.php:43
 msgid "Mailer"
+msgstr ""
+
+#: src/Admin/AdminPage.php:299
+msgid "Mailer settings tabs"
 msgstr ""
 
 #: src/Admin/AdminPage.php:280 src/Admin/AdminPage.php:368
@@ -199,6 +213,10 @@ msgstr ""
 msgid "SMTP Port"
 msgstr ""
 
+#: src/Admin/AdminPage.php:200
+msgid "SSL"
+msgstr ""
+
 #: src/Admin/AdminPage.php:101
 msgid "Save Settings"
 msgstr ""
@@ -227,7 +245,7 @@ msgstr ""
 msgid "Settings saved."
 msgstr ""
 
-#: src/Admin/AdminScreenHelpers.php:22
+#: src/Admin/AdminPage.php:40 src/Admin/AdminScreenHelpers.php:22
 msgid "SymPress Mailer"
 msgstr ""
 
@@ -249,6 +267,10 @@ msgstr ""
 
 #: src/Admin/AdminScreenHelpers.php:22
 msgid "Symfony Mailer delivery for WordPress."
+msgstr ""
+
+#: src/Admin/AdminPage.php:200
+msgid "TLS"
 msgstr ""
 
 #: src/Admin/AdminPage.php:266
@@ -302,4 +324,8 @@ msgstr ""
 
 #: src/Hook/SiteHealthCheck.php:49
 msgid "WordPress sends emails with its default mail function instead of the configured connection."
+msgstr ""
+
+#: src/Admin/AdminPage.php:190
+msgid "wp-config.php constants"
 msgstr ""
