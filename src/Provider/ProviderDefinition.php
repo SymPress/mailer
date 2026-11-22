@@ -7,7 +7,7 @@ namespace SymPress\Mailer\Provider;
 final readonly class ProviderDefinition
 {
     private const array COMMON_FORM_FIELDS = ['key_store', 'secret_prefix', 'from_email', 'from_name', 'force_from', 'force_from_name', 'return_path'];
-    private const array SMTP_FORM_FIELDS = ['encryption', 'auto_tls', 'verify_peer'];
+    private const array SMTP_FORM_FIELDS = ['host', 'port', 'encryption', 'auto_tls', 'verify_peer'];
 
     /**
      * @param list<string> $fields
@@ -45,9 +45,15 @@ final readonly class ProviderDefinition
      */
     public function formFields(): array
     {
-        $transportFields = $this->transport === 'smtp' ? self::SMTP_FORM_FIELDS : [];
+        // Every field that decides where mail and credentials go stays visible: a stale host from a
+        // previously selected provider is still submitted and would otherwise redirect them unseen.
+        $destinationFields = match (true) {
+            $this->transport === 'smtp' => self::SMTP_FORM_FIELDS,
+            $this->supports('custom_transport') => ['host'],
+            default => [],
+        };
 
-        return array_values(array_unique([...self::COMMON_FORM_FIELDS, ...$this->fields, ...$transportFields]));
+        return array_values(array_unique([...self::COMMON_FORM_FIELDS, ...$this->fields, ...$destinationFields]));
     }
 
     /** @return array{0: string, 1: string, 2: string} */
