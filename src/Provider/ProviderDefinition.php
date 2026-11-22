@@ -6,6 +6,9 @@ namespace SymPress\Mailer\Provider;
 
 final readonly class ProviderDefinition
 {
+    private const array COMMON_FORM_FIELDS = ['key_store', 'secret_prefix', 'from_email', 'from_name', 'force_from', 'force_from_name', 'return_path'];
+    private const array SMTP_FORM_FIELDS = ['encryption', 'auto_tls', 'verify_peer'];
+
     /**
      * @param list<string> $fields
      * @param list<string> $requiredFields
@@ -33,6 +36,18 @@ final readonly class ProviderDefinition
     public function supports(string $capability): bool
     {
         return $this->capabilities[$capability] ?? false;
+    }
+
+    /**
+     * Connection form fields that matter for this provider; the admin screen hides the others.
+     *
+     * @return list<string>
+     */
+    public function formFields(): array
+    {
+        $transportFields = $this->transport === 'smtp' ? self::SMTP_FORM_FIELDS : [];
+
+        return array_values(array_unique([...self::COMMON_FORM_FIELDS, ...$this->fields, ...$transportFields]));
     }
 
     /** @return array{0: string, 1: string, 2: string} */
