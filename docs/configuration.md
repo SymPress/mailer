@@ -169,6 +169,10 @@ site has no saved option; a saved site option is an explicit override. Admin
 screens continue to edit their own scope. Inherited plaintext migration updates
 the network option without creating a site override.
 
+On uninstall, every site option in every network and every network option is
+deleted exactly when its own "Delete Settings on Uninstall" flag is on; a site's
+choice never overrides its network's choice or the other way round.
+
 `WordPressSettingsRepository::getForDelivery()` provides that delivery view;
 `get()` and `save()` retain the administrative scope. Custom repositories may
 implement the optional `DeliverySettingsRepositoryInterface`; existing

@@ -46,6 +46,22 @@ if (!function_exists('update_option')) {
     }
 }
 
+if (!function_exists('delete_option')) {
+    function delete_option(string $option): bool
+    {
+        unset($GLOBALS['sympress_mailer_test_options'][$option]);
+
+        return true;
+    }
+}
+
+if (!function_exists('is_multisite')) {
+    function is_multisite(): bool
+    {
+        return false;
+    }
+}
+
 $GLOBALS['sympress_mailer_test_actions'] ??= [];
 $GLOBALS['sympress_mailer_test_hooks'] ??= [];
 
