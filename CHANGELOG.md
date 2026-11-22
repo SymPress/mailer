@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.1.10 — 2026-11-22
+
+- Fix: mails with a `Sender`, `Date` or `Return-Path` header in `wp_mail()` are delivered again instead of being lost. These headers are now applied as real sender, date and return path; a configured return path still takes precedence over the header, and a value that cannot be parsed is skipped.
+- Fix: a custom header with a malformed name (for example an empty name or one containing spaces) is skipped instead of aborting the whole mail, as in WordPress core.
+
 ## 0.1.9 — 2026-11-16
 
 - Security: API endpoint overrides for the built-in API providers (Cloudflare, ToSend, SMTP2GO, Pepipost, ZeptoMail/TransMail) must use `https://` and resolve to a public address. Loopback, private, link-local and reserved targets fail validation and are blocked again at send time, including after redirects and DNS changes.
