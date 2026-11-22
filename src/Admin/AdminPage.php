@@ -10,9 +10,12 @@ use SymPress\Mailer\Config\MailerSettings;
 use SymPress\Mailer\Config\SettingsRepositoryInterface;
 use SymPress\Mailer\Config\SettingsScope;
 use SymPress\Mailer\Import\ConnectionImportService;
+use SymPress\Mailer\Message\WordPressMail;
 use SymPress\Mailer\Provider\ProviderDefinition;
 use SymPress\Mailer\Provider\ProviderRegistryInterface;
+use SymPress\Mailer\Secret\ConnectionSecretResolverInterface;
 use SymPress\Mailer\Secret\SecretFields;
+use SymPress\Mailer\Support\FailureReason;
 use SymPress\Mailer\Support\WordPressArray;
 use SymPress\Mailer\Validation\ConnectionHealthCheckerInterface;
 use SymPress\Mailer\Validation\ConnectionValidatorInterface;
@@ -29,6 +32,7 @@ final readonly class AdminPage
         private ConnectionValidatorInterface $validator,
         private ConnectionHealthCheckerInterface $healthChecker,
         private ConnectionImportService $imports,
+        private ConnectionSecretResolverInterface $secretResolver,
     ) {
     }
 
@@ -115,9 +119,19 @@ final readonly class AdminPage
         $this->chromeStart(__('Tools', 'sympress-mailer'), $settings);
 
         $status = WordPressArray::string(WordPressArray::get()['sympress_mailer_test'] ?? '');
-        if ($status !== '') {
-            $class = $status === 'sent' ? 'notice-success' : 'notice-error';
-            echo '<div class="notice ' . $this->attr($class) . ' inline"><p>Test email ' . $this->esc($status) . '.</p></div>';
+        if ($status === 'sent') {
+            echo '<div class="notice notice-success inline"><p>' . esc_html__('Test email sent.', 'sympress-mailer') . '</p></div>';
+        } elseif ($status !== '') {
+            $reason = function_exists('get_transient') ? get_transient($this->testFailureKey()) : false;
+            $message = __('Test email failed.', 'sympress-mailer');
+
+            if (is_string($reason) && $reason !== '') {
+                delete_transient($this->testFailureKey());
+                /* translators: %s: the reason the test email failed, e.g. a server error message. */
+                $message = sprintf(__('Test email failed: %s', 'sympress-mailer'), $reason);
+            }
+
+            echo '<div class="notice notice-error inline"><p>' . $this->esc($message) . '</p></div>';
         }
 
         echo '<section class="spm-section">';
@@ -184,8 +198,37 @@ final readonly class AdminPage
         $this->checkNonce('sympress_mailer_send_test');
 
         $to = WordPressArray::string(WordPressArray::post()['to'] ?? '');
-        $result = $to !== '' ? $this->testEmailSender->send($to) : null;
+        $reason = '';
+        $capture = function (string $logId, \Throwable $error, WordPressMail $mail, ConnectionConfig $connection) use (&$reason): void {
+            try {
+                $reason = FailureReason::redact($error->getMessage(), $this->secretResolver->resolve($connection));
+            } catch (\Throwable) {
+                // Without resolved secrets the message cannot be redacted safely, so show none.
+                $reason = '';
+            }
+        };
+
+        if (function_exists('add_action')) {
+            add_action('sympress_mailer_delivery_failed', $capture, 10, 4);
+        }
+
+        try {
+            $result = $to !== '' ? $this->testEmailSender->send($to) : null;
+        } finally {
+            if (function_exists('remove_action')) {
+                remove_action('sympress_mailer_delivery_failed', $capture, 10);
+            }
+        }
+
         $status = $result?->accepted === true ? 'sent' : 'failed';
+
+        if (function_exists('set_transient')) {
+            if ($status === 'failed' && $reason !== '') {
+                set_transient($this->testFailureKey(), $reason, 60);
+            } else {
+                delete_transient($this->testFailureKey());
+            }
+        }
 
         $this->redirect(self::SLUG . '-tools', ['sympress_mailer_test' => $status]);
     }
@@ -551,6 +594,11 @@ final readonly class AdminPage
     private function adminPostUrl(): string
     {
         return $this->adminUrl('admin-post.php');
+    }
+
+    private function testFailureKey(): string
+    {
+        return 'sympress_mailer_test_failure_' . (function_exists('get_current_user_id') ? get_current_user_id() : 0);
     }
 
     private function defaultRecipient(): string

@@ -192,6 +192,19 @@ msgstr ""
 msgid "Tenant ID"
 msgstr ""
 
+#: src/Admin/AdminPage.php:126
+msgid "Test email failed."
+msgstr ""
+
+#. translators: %s: the reason the test email failed, e.g. a server error message.
+#: src/Admin/AdminPage.php:131
+msgid "Test email failed: %s"
+msgstr ""
+
+#: src/Admin/AdminPage.php:123
+msgid "Test email sent."
+msgstr ""
+
 #: src/Admin/AdminPage.php:62 src/Admin/AdminPage.php:63 src/Admin/AdminPage.php:115
 msgid "Tools"
 msgstr ""
