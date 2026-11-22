@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 1.0.0 — 2026-11-23
+
+- First stable release. No code changes since 0.7.1.
+- From now on the public surface follows Semantic Versioning: hooks, the
+  settings option and its secret format, the console commands, the
+  extension-point interfaces, the value objects and the helpers extensions use
+  only change incompatibly in a major release. See
+  [Backward compatibility](docs/stability.md).
+- Docs: new [hook reference](docs/hooks.md) and
+  [1.0.0 release notes](docs/releases/1.0.0.md) with upgrade notes; README and
+  development guide updated.
+
 ## 0.7.1 — 2026-11-23
 
 - Fix: on multisite, uninstalling the plugin now checks every site in every network and every network on its own. Each saved setting is deleted exactly when its own "Delete Settings on Uninstall" option is on. Before, only the site the uninstall ran on was checked, so other sites that opted in kept their settings and encrypted credentials, and the network settings were deleted or kept depending on the main site's choice instead of the network's.
