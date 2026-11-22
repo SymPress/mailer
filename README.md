@@ -30,7 +30,8 @@ The SymPress kernel discovers the `SymPress\Mailer\MailerBundle` bundle from
 - Tools screen with a test email that shows the failure reason, and an SMTP
   connection check that logs in without sending mail.
 - Console commands `wp console mailer:test` and `wp console mailer:status`.
-- A Site Health test that reports whether mail is delivered.
+- A Site Health test that reports whether mail delivery is enabled and validly
+  configured.
 - Skips invalid recipients and malformed headers like WordPress core instead of
   losing the mail, and fires `sympress_mailer_delivery_failed` with the reason
   when delivery fails.
