@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.5.1 — 2026-11-23
+
+- Changed: the admin screens were split into separate classes (Settings and Tools). No behaviour change.
+
 ## 0.5.0 — 2026-11-22
 
 - New: Tools > Site Health shows whether mail is actually delivered. It reports a critical issue when the settings cannot be read (for example because the encryption key is missing or changed), when "Do not send" is on in a production environment or when the connection fails validation, with the validation messages listed. A disabled mailer and "Do not send" outside production are reported as recommended improvements. Otherwise the test passes and names the provider. The test only validates the configuration, never connects to the mail server and never shows the DSN, username, password or API credentials.
