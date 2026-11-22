@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.3.0 — 2026-11-22
+
+- New: a "Check Connection" button on the Tools screen connects to the SMTP server, negotiates TLS and logs in with the saved credentials, then disconnects without sending mail. A wrong host, port, TLS mode or password now shows up without a test email. The check gives up after about 10 seconds, and credentials in the error message are replaced by `***`. API, native, sendmail and failover connections cannot be checked this way; the screen says so and suggests a test email instead.
+- The check runs only on demand. Saving the settings still only validates the configuration, so an unreachable SMTP server never blocks saving.
+
 ## 0.2.0 — 2026-11-22
 
 - New: the `sympress_mailer_delivery_failed` action fires when a mail cannot be delivered and receives the log ID, the caught exception, the `WordPressMail` and the connection. The exception may contain provider or server response text, so treat it as sensitive. The `wp_mail_failed` message stays generic.
