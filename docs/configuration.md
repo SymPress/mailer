@@ -53,6 +53,31 @@ It does not prove that mail is delivered or that the sender address is
 accepted, and API, native, sendmail and failover connections cannot be checked
 this way, so send a test email for those. The check never runs on save.
 
+## Command Line
+
+Two console commands run through the SymPress kernel's WP-CLI bridge, for
+deploy smoke tests, CI and servers without admin access:
+
+```sh
+wp console mailer:test you@example.com
+wp console mailer:status --probe
+```
+
+`mailer:test <to>` sends the Tools screen's test email. It prints the status:
+`sent`, `suppressed` (Do not send is on, nothing was delivered) or `queued`
+(accepted for later delivery). A failed send prints the reason with credentials
+replaced by `***`. Exit codes: `0` accepted, `1` failed, `2` invalid address
+(nothing is sent).
+
+`mailer:status` prints the delivery settings as seen at runtime: enabled, Do
+not send, provider, secret source, From email and name, the force flags, and
+the validation result. It never prints the DSN, username, password or API
+credentials. `--probe` also runs the SMTP connection check described above.
+Exit codes: `0` valid (and the probe passed or does not apply), `1` the
+settings cannot be read (for example a missing encryption key), validation
+failed or the probe failed. A disabled mailer is reported, not treated as an
+error.
+
 ## Secret Storage and Upgrade
 
 Option credentials and credential-bearing DSNs use authenticated AES-256-GCM
