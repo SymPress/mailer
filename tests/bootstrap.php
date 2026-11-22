@@ -81,3 +81,38 @@ if (!function_exists('remove_action')) {
         return true;
     }
 }
+
+if (!function_exists('__')) {
+    function __(string $text, string $domain = 'default'): string
+    {
+        return $text;
+    }
+}
+
+if (!function_exists('esc_html')) {
+    function esc_html(string $text): string
+    {
+        return htmlspecialchars($text, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('esc_url')) {
+    function esc_url(string $url): string
+    {
+        return htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+    }
+}
+
+if (!function_exists('admin_url')) {
+    function admin_url(string $path = ''): string
+    {
+        return 'https://example.test/wp-admin/' . ltrim($path, '/');
+    }
+}
+
+if (!function_exists('wp_get_environment_type')) {
+    function wp_get_environment_type(): string
+    {
+        return $GLOBALS['sympress_mailer_test_environment'] ?? 'production';
+    }
+}

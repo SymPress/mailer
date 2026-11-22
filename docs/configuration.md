@@ -78,6 +78,26 @@ settings cannot be read (for example a missing encryption key), validation
 failed or the probe failed. A disabled mailer is reported, not treated as an
 error.
 
+## Site Health
+
+Tools > Site Health shows a "SymPress Mailer delivery" test, based on the
+delivery settings as seen at runtime. The first matching state wins:
+
+- **Critical:** the settings cannot be read, for example because the
+  encryption key is missing or changed. Restore the key or re-enter the
+  credentials.
+- **Recommended:** the mailer is disabled, so WordPress uses its default mail
+  function.
+- **Critical** in the `production` environment type, **recommended**
+  elsewhere: Do not send is on, so mail is accepted but not delivered.
+- **Critical:** the default connection fails validation; the validation
+  messages are listed.
+- **Good:** mail is sent through the named provider.
+
+The test only validates the configuration. It never connects to the mail
+server and never shows the DSN, username, password or API credentials. It
+stays active when Mailer Pro is installed.
+
 ## Secret Storage and Upgrade
 
 Option credentials and credential-bearing DSNs use authenticated AES-256-GCM

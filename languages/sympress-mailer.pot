@@ -58,12 +58,41 @@ msgstr ""
 msgid "Do Not Send"
 msgstr ""
 
+#: src/Hook/SiteHealthCheck.php:53
+msgid "Do Not Send is enabled"
+msgstr ""
+
 #: src/Admin/AdminPage.php:258
 msgid "Domain"
 msgstr ""
 
+#: src/Hook/SiteHealthCheck.php:84
+msgid "Email"
+msgstr ""
+
 #: src/Admin/AdminPage.php:124
 msgid "Email Test"
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:53
+msgid "Emails are accepted but not delivered to anyone."
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:66
+msgid "Emails are delivered through SymPress Mailer"
+msgstr ""
+
+#. translators: %s: the mail provider name, e.g. "Postmark".
+#: src/Hook/SiteHealthCheck.php:66
+msgid "Emails are sent with the %s connection."
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:45
+msgid "Emails cannot be delivered because the stored mail credentials cannot be decrypted, for example after the encryption key was removed or changed. Restore the key or enter the credentials again."
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:60
+msgid "Emails cannot be delivered until these connection settings are fixed:"
 msgstr ""
 
 #: src/Admin/AdminPage.php:231
@@ -142,6 +171,10 @@ msgstr ""
 msgid "None"
 msgstr ""
 
+#: src/Hook/SiteHealthCheck.php:86
+msgid "Open the mailer settings"
+msgstr ""
+
 #: src/Admin/AdminPage.php:254
 msgid "Password"
 msgstr ""
@@ -198,6 +231,14 @@ msgstr ""
 msgid "SymPress Mailer"
 msgstr ""
 
+#: src/Hook/SiteHealthCheck.php:31
+msgid "SymPress Mailer delivery"
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:49
+msgid "SymPress Mailer is disabled"
+msgstr ""
+
 #: src/Admin/AdminPage.php:480
 msgid "SymPress Mailer validation failed"
 msgstr ""
@@ -227,6 +268,14 @@ msgstr ""
 msgid "Test email sent."
 msgstr ""
 
+#: src/Hook/SiteHealthCheck.php:60
+msgid "The mail connection is invalid"
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:45
+msgid "The mailer settings cannot be read"
+msgstr ""
+
 #: src/Admin/AdminPage.php:662
 msgid "This connection type cannot be checked without sending. Send a test email instead."
 msgstr ""
@@ -245,4 +294,8 @@ msgstr ""
 
 #: src/Admin/AdminPage.php:248
 msgid "When a password, API key or DSN comes from this external source, the DSN, host, port, encryption and TLS settings are read from the same source and the values below are ignored. Without an external host, the provider's default endpoint is used."
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:49
+msgid "WordPress sends emails with its default mail function instead of the configured connection."
 msgstr ""
