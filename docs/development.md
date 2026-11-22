@@ -12,9 +12,9 @@ composer install
 npm ci
 ```
 
-Use Node.js 24. Admin tooling uses Encore 7, Babel 8 and Webpack CLI 6 with the
-committed npm lock. The previous Yarn lock is replaced so local builds, CI and
-audits use the same dependency graph.
+Use Node.js 24, as CI does. Admin tooling uses Encore 7, Babel 8 and Webpack
+CLI 6 with the committed `package-lock.json`, so local builds, CI and audits use
+the same dependency graph.
 
 ## Build Admin Assets
 
@@ -22,9 +22,11 @@ audits use the same dependency graph.
 npm run build
 ```
 
-The package keeps fallback assets in `assets/admin.css` and `assets/admin.js`.
-When Webpack Encore writes `assets/entrypoints.json`, the asset provider can load
-the compiled entrypoints instead.
+The build runs the TypeScript typecheck and writes the compiled assets plus
+`entrypoints.json` and `manifest.json` to `assets/`, which is not committed. The asset provider loads `entrypoints.json`, or `manifest.json` when
+only that exists. Without either it falls back to `assets/admin.css` and
+`assets/admin.js`, which the package does not ship, so build the assets before
+working on the admin screens.
 
 ## Run Checks
 
@@ -35,7 +37,9 @@ composer cs
 npm run typecheck
 ```
 
-Use `composer tests` for the unit test suite only.
+`composer test` is an alias of `composer tests` and runs the unit suite in
+`tests/Unit`. `composer qa` runs the coding standards, static analysis and unit
+suite in one go.
 
 ## Native Provider Recording
 
@@ -62,15 +66,18 @@ Source: [Symfony PR 63781](https://github.com/symfony/symfony/pull/63781).
 - Replace `SymPress\Mailer\Application\MailerInterface` to customize delivery.
 - Replace `SymPress\Mailer\Message\EmailBodyProcessorInterface` to transform HTML
   message bodies before they are handed to Symfony Mailer.
-- Read and write `MailerSettings` through `SettingsRepositoryInterface` when an
-  extension needs to add package-specific settings.
+- Read and write `MailerSettings` through `SettingsRepositoryInterface`.
+  `MailerSettings::toArray()` writes only the keys `MailerSettings` knows, so
+  other keys in the option are dropped on the next save.
+
+[Hooks](hooks.md) lists the actions and filters, and
+[Backward compatibility](stability.md) lists what extensions can rely on.
 
 ## Real WordPress / Database Tests
 
 The integration suite installs disposable WordPress from the Composer dev
 requirement. It blocks WordPress HTTP requests and uses local transport doubles;
-it never sends email or provider/SMS requests. PHP needs mysqli, OpenSSL and
-pcntl (pcntl is required for Mailer Pro's overlapping worker test).
+it never sends email or provider/SMS requests. PHP needs mysqli and OpenSSL.
 
 Start an isolated MariaDB service on `127.0.0.1:33079` with an empty root password,
 then run:
