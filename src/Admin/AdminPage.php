@@ -37,7 +37,7 @@ final readonly class AdminPage
         }
 
         add_menu_page(
-            'SymPress Mailer',
+            __('SymPress Mailer', 'sympress-mailer'),
             __('Mailer', 'sympress-mailer'),
             SettingsScope::network() ? 'manage_network_options' : 'manage_options',
             self::SLUG,
@@ -187,7 +187,7 @@ final readonly class AdminPage
         echo '</div>';
 
         $this->providerHelp($connection);
-        $this->select('key_store', __('Secret Source', 'sympress-mailer'), $connection->keyStore, ['encrypted_option' => __('Encrypted option', 'sympress-mailer'), 'env' => __('Environment / constants', 'sympress-mailer'), 'wp_config' => 'wp-config.php constants', 'config' => __('Kernel config / filter', 'sympress-mailer')]);
+        $this->select('key_store', __('Secret Source', 'sympress-mailer'), $connection->keyStore, ['encrypted_option' => __('Encrypted option', 'sympress-mailer'), 'env' => __('Environment / constants', 'sympress-mailer'), 'wp_config' => __('wp-config.php constants', 'sympress-mailer'), 'config' => __('Kernel config / filter', 'sympress-mailer')]);
         $this->input('secret_prefix', __('Secret Prefix', 'sympress-mailer'), $connection->secretPrefix);
         if (in_array($connection->keyStore, ['env', 'wp_config', 'config'], true)) {
             echo '<p class="description">' . esc_html__('When a password, API key or DSN comes from this external source, the DSN, host, port, encryption and TLS settings are read from the same source and the values below are ignored. Without an external host, the provider\'s default endpoint is used.', 'sympress-mailer') . '</p>';
@@ -197,7 +197,7 @@ final readonly class AdminPage
         $this->input('port', __('SMTP Port', 'sympress-mailer'), (string) $connection->port, 'number');
         $this->input('username', __('Username', 'sympress-mailer'), $connection->username);
         $this->input('password', __('Password', 'sympress-mailer'), $connection->password, 'password');
-        $this->select('encryption', __('Encryption', 'sympress-mailer'), $connection->encryption, $this->providerFieldOptions($connection, 'encryption') ?: ['tls' => 'TLS', 'ssl' => 'SSL', 'none' => __('None', 'sympress-mailer')]);
+        $this->select('encryption', __('Encryption', 'sympress-mailer'), $connection->encryption, $this->providerFieldOptions($connection, 'encryption') ?: ['tls' => __('TLS', 'sympress-mailer'), 'ssl' => __('SSL', 'sympress-mailer'), 'none' => __('None', 'sympress-mailer')]);
         $this->input('api_key', __('API Key', 'sympress-mailer'), $connection->apiKey);
         $this->input('api_secret', __('API Secret', 'sympress-mailer'), $connection->apiSecret, 'password');
         $this->input('domain', __('Domain', 'sympress-mailer'), $connection->domain);
@@ -296,7 +296,7 @@ final readonly class AdminPage
 
     private function tabs(string $current): void
     {
-        echo '<nav class="nav-tab-wrapper spm-tabs" aria-label="Mailer settings tabs">';
+        echo '<nav class="nav-tab-wrapper spm-tabs" aria-label="' . esc_attr__('Mailer settings tabs', 'sympress-mailer') . '">';
         foreach (['general' => __('General', 'sympress-mailer'), 'import' => __('Import', 'sympress-mailer'), 'misc' => __('Misc', 'sympress-mailer')] as $tab => $label) {
             $class = $tab === $current ? ' nav-tab-active' : '';
             $currentAttribute = $tab === $current ? ' aria-current="page"' : '';
@@ -333,7 +333,8 @@ final readonly class AdminPage
         $imported = WordPressArray::string($get['imported'] ?? '');
 
         if ($imported !== '') {
-            echo '<div class="notice notice-success inline"><p>Imported settings from ' . $this->esc($imported) . '.</p></div>';
+            /* translators: %s: the import source, e.g. "wp-mail-smtp". */
+            echo '<div class="notice notice-success inline"><p>' . $this->esc(sprintf(__('Imported settings from %s.', 'sympress-mailer'), $imported)) . '</p></div>';
         }
 
         if (!(WordPressArray::string($get['health'] ?? '') === 'ok')) {
@@ -352,7 +353,8 @@ final readonly class AdminPage
         }
 
         echo '<p class="description"><a href="' . $this->attr($provider->docsUrl) . '" target="_blank" rel="noopener noreferrer">';
-        echo $this->esc($provider->title) . ' setup documentation</a></p>';
+        /* translators: %s: the mail provider name, e.g. "Postmark". */
+        echo $this->esc(sprintf(__('%s setup documentation', 'sympress-mailer'), $provider->title)) . '</a></p>';
     }
 
     private function providerLogo(ProviderDefinition $provider): string
@@ -377,7 +379,7 @@ final readonly class AdminPage
     private function failValidation(string $message): never
     {
         if (function_exists('wp_die')) {
-            wp_die(nl2br($this->esc($message)), __('SymPress Mailer validation failed', 'sympress-mailer'), ['response' => 422]);
+            wp_die(nl2br($this->esc($message)), esc_html__('SymPress Mailer validation failed', 'sympress-mailer'), ['response' => 422]);
         }
 
         throw new \InvalidArgumentException($message);
