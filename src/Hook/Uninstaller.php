@@ -7,41 +7,55 @@ namespace SymPress\Mailer\Hook;
 final class Uninstaller
 {
     private const string OPTION_NAME = 'sympress_mailer_settings';
+    private const int PAGE_SIZE = 100;
 
+    /** Every stored option is deleted exactly when its own uninstall_data flag is true. */
     public static function uninstall(): void
     {
-        $settings = self::settings();
+        if (!is_multisite()) {
+            if (self::optedIn(get_option(self::OPTION_NAME))) {
+                delete_option(self::OPTION_NAME);
+            }
 
-        if (!is_array($settings) || ($settings['uninstall_data'] ?? false) !== true) {
             return;
         }
 
-        if (function_exists('delete_option')) {
-            delete_option(self::OPTION_NAME);
+        foreach (self::ids(get_networks(...)) as $networkId) {
+            if (!self::optedIn(get_network_option($networkId, self::OPTION_NAME))) {
+                continue;
+            }
+
+            delete_network_option($networkId, self::OPTION_NAME);
         }
 
-        if (!function_exists('delete_site_option')) {
-            return;
-        }
+        foreach (self::ids(get_sites(...)) as $siteId) {
+            if (!self::optedIn(get_blog_option($siteId, self::OPTION_NAME))) {
+                continue;
+            }
 
-        delete_site_option(self::OPTION_NAME);
+            delete_blog_option($siteId, self::OPTION_NAME);
+        }
     }
 
-    /** @return array<string, mixed>|null */
-    private static function settings(): ?array
+    private static function optedIn(mixed $option): bool
     {
-        $settings = null;
+        return is_array($option) && ($option['uninstall_data'] ?? false) === true;
+    }
 
-        if (function_exists('get_option')) {
-            $option = get_option(self::OPTION_NAME, null);
-            $settings = is_array($option) ? $option : $settings;
+    /** @return \Generator<int> */
+    private static function ids(callable $query): \Generator
+    {
+        // Deleting an option never removes a site or network, so offset paging cannot skip entries.
+        for ($offset = 0;; $offset += self::PAGE_SIZE) {
+            $ids = $query(['fields' => 'ids', 'number' => self::PAGE_SIZE, 'offset' => $offset]);
+
+            if (!is_array($ids) || $ids === []) {
+                return;
+            }
+
+            foreach ($ids as $id) {
+                yield (int) $id;
+            }
         }
-
-        if ($settings === null && function_exists('get_site_option')) {
-            $option = get_site_option(self::OPTION_NAME, null);
-            $settings = is_array($option) ? $option : null;
-        }
-
-        return $settings;
     }
 }
