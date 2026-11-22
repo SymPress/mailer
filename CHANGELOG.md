@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.2.0 — 2026-11-22
+
+- New: the `sympress_mailer_delivery_failed` action fires when a mail cannot be delivered and receives the log ID, the caught exception, the `WordPressMail` and the connection. The exception may contain provider or server response text, so treat it as sensitive. The `wp_mail_failed` message stays generic.
+- New: a failed test email on the Tools screen now shows the reason, for example "Test email failed: Connection could not be established with host …". Passwords, API keys, API secrets and DSNs are replaced by `***` before the reason is displayed.
+- The test email notices are now translatable.
+
 ## 0.1.11 — 2026-11-22
 
 - Fix: an invalid recipient address in To, Cc, Bcc, Reply-To or the forward addresses no longer makes the whole mail fail. As in WordPress core, the invalid address is skipped and the mail is sent to the remaining recipients; it still fails when no valid recipient is left. Each skipped address fires the new `sympress_mailer_recipient_skipped` action.
