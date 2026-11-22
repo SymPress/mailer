@@ -61,6 +61,10 @@ services:
             - { name: kernel.hook, hook: 'admin_post_sympress_mailer_check_connection', method: checkConnection }
             - { name: kernel.hook, hook: 'admin_post_sympress_mailer_import_connection', method: importConnection }
 
+    SymPress\Mailer\Hook\SiteHealthCheck:
+        tags:
+            - { name: kernel.hook, hook: 'site_status_tests', method: register, type: filter }
+
     SymPress\Mailer\Hook\Translations:
         tags:
             - { name: kernel.hook, hook: 'init', method: load }
