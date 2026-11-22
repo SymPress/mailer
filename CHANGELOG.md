@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 0.1.11 — 2026-11-22
+
+- Fix: an invalid recipient address in To, Cc, Bcc, Reply-To or the forward addresses no longer makes the whole mail fail. As in WordPress core, the invalid address is skipped and the mail is sent to the remaining recipients; it still fails when no valid recipient is left. Each skipped address fires the new `sympress_mailer_recipient_skipped` action.
+
 ## 0.1.10 — 2026-11-22
 
 - Fix: mails with a `Sender`, `Date` or `Return-Path` header in `wp_mail()` are delivered again instead of being lost. These headers are now applied as real sender, date and return path; a configured return path still takes precedence over the header, and a value that cannot be parsed is skipped.
