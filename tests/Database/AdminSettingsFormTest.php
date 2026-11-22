@@ -59,6 +59,7 @@ final class AdminSettingsFormTest extends TestCase
             self::assertStringContainsString($submitted, $html);
         }
         self::assertStringContainsString('spm-status is-off', $html);
+        self::assertStringContainsString('<input type="checkbox" checked> Show all fields', $html);
         $this->assertNoCanary($html);
         self::assertFalse(get_transient(self::STASH));
 
@@ -66,6 +67,7 @@ final class AdminSettingsFormTest extends TestCase
         self::assertStringNotContainsString('notice-error', $again);
         self::assertStringContainsString('stored.example.test', $again);
         self::assertStringNotContainsString('submitted.example.test', $again);
+        self::assertStringContainsString('<input type="checkbox"> Show all fields', $again);
         $this->assertNoCanary($again);
     }
 
@@ -83,6 +85,38 @@ final class AdminSettingsFormTest extends TestCase
         self::assertStringContainsString('<li>Health &lt;b&gt;failure&lt;/b&gt;</li>', $html);
         self::assertStringContainsString('healthy.example.test', $html);
         $this->assertNoCanary($html);
+    }
+
+    public function testGeneralTabTagsRowsAndProviderCardsWithTheirFields(): void
+    {
+        $common = 'key_store secret_prefix from_email from_name force_from force_from_name return_path';
+        $html = $this->renderGeneralTab(['provider' => 'postmark', 'api_key' => 'stored-api-canary', 'password' => 'stored-password-canary']);
+
+        self::assertStringContainsString('<p class="spm-show-all" hidden><label><input type="checkbox"> Show all fields</label></p>', $html);
+        self::assertStringContainsString('data-fields="' . $common . ' api_key"><input type="radio" name="provider" value="postmark" checked>', $html);
+        self::assertStringContainsString('data-fields="' . $common . ' host port username password encryption auto_tls verify_peer"><input type="radio" name="provider" value="smtp">', $html);
+        foreach (['key_store', 'host', 'port', 'encryption', 'region', 'tenant_id', 'from_email', 'auto_tls', 'verify_peer'] as $field) {
+            self::assertStringContainsString('data-field="' . $field . '"', $html);
+        }
+        self::assertStringContainsString('<label class="spm-field" data-field="password"><span>Password</span><input type="password" name="password" value="">', $html);
+        self::assertStringContainsString('<label class="spm-switch-row" data-field="password"><span>Clear stored secret</span><span class="spm-switch"><input type="checkbox" name="_clear_secrets[password]" value="1">', $html);
+        self::assertStringNotContainsString('stored-api-canary', $html);
+        $this->assertNoCanary($html);
+
+        $withDsn = $this->renderGeneralTab(['provider' => 'postmark', 'dsn' => 'smtp://user:dsn-canary@example.test']);
+        self::assertStringContainsString('data-fields="' . $common . ' api_key dsn"><input type="radio" name="provider" value="postmark" checked>', $withDsn);
+        self::assertStringContainsString('data-fields="' . $common . ' dsn"><input type="radio" name="provider" value="dsn">', $withDsn);
+        self::assertStringNotContainsString('dsn-canary', $withDsn);
+    }
+
+    /** @param array<string, mixed> $connection */
+    private function renderGeneralTab(array $connection): string
+    {
+        $admin = $this->admin(new ConnectionHealth(true, 'unused'));
+        ob_start();
+        (new \ReflectionMethod($admin, 'generalTab'))->invoke($admin, MailerSettings::fromArray(['connection' => $connection]));
+
+        return (string) ob_get_clean();
     }
 
     private function admin(ConnectionHealth $health): AdminPage

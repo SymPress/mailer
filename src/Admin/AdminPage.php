@@ -94,7 +94,7 @@ final readonly class AdminPage
         if ($tab === 'misc') {
             $this->miscTab($settings);
         } else {
-            $this->generalTab($this->withSubmittedForm($settings, $rejected['form'] ?? []));
+            $this->generalTab($this->withSubmittedForm($settings, $rejected['form'] ?? []), $rejected !== null);
         }
 
         echo '<p><button type="submit" class="button button-primary">' . esc_html__('Save Settings', 'sympress-mailer') . '</button></p>';
@@ -167,9 +167,12 @@ final readonly class AdminPage
         $this->redirect(self::SLUG, ['tab' => 'general', 'imported' => $source, 'health' => 'ok']);
     }
 
-    private function generalTab(MailerSettings $settings): void
+    /** @param bool $showAllFields Set after a rejected save, so every field named in the errors is visible. */
+    private function generalTab(MailerSettings $settings, bool $showAllFields = false): void
     {
         $connection = $settings->defaultConnection();
+        // A stored DSN silently wins over every provider's fields, so it must never be hidden.
+        $dsnField = $connection->dsn !== '' ? ['dsn'] : [];
 
         echo '<section class="spm-section">';
         echo '<h2>' . esc_html__('Primary Connection', 'sympress-mailer') . '</h2>';
@@ -178,7 +181,7 @@ final readonly class AdminPage
         echo '<div class="spm-provider-grid">';
         foreach ($this->providers->all() as $provider) {
             $checked = $connection->provider === $provider->key ? ' checked' : '';
-            echo '<label class="spm-provider-card">';
+            echo '<label class="spm-provider-card" data-fields="' . $this->attr(implode(' ', array_unique([...$provider->formFields(), ...$dsnField]))) . '">';
             echo '<input type="radio" name="provider" value="' . $this->attr($provider->key) . '"' . $checked . '>';
             echo $this->providerLogo($provider);
             echo '<strong>' . $this->esc($provider->title) . '</strong><span>' . $this->esc($provider->type) . '</span>';
@@ -187,6 +190,8 @@ final readonly class AdminPage
         echo '</div>';
 
         $this->providerHelp($connection);
+        echo '<div class="spm-provider-fields">';
+        echo '<p class="spm-show-all" hidden><label><input type="checkbox"' . ($showAllFields ? ' checked' : '') . '> ' . esc_html__('Show all fields', 'sympress-mailer') . '</label></p>';
         $this->select('key_store', __('Secret Source', 'sympress-mailer'), $connection->keyStore, ['encrypted_option' => __('Encrypted option', 'sympress-mailer'), 'env' => __('Environment / constants', 'sympress-mailer'), 'wp_config' => __('wp-config.php constants', 'sympress-mailer'), 'config' => __('Kernel config / filter', 'sympress-mailer')]);
         $this->input('secret_prefix', __('Secret Prefix', 'sympress-mailer'), $connection->secretPrefix);
         if (in_array($connection->keyStore, ['env', 'wp_config', 'config'], true)) {
@@ -216,7 +221,7 @@ final readonly class AdminPage
         $this->switchRow('return_path', __('Set Return-Path', 'sympress-mailer'), $connection->returnPath);
         $this->switchRow('auto_tls', __('Auto TLS', 'sympress-mailer'), $connection->autoTls);
         $this->switchRow('verify_peer', __('Verify TLS Peer', 'sympress-mailer'), $connection->verifyPeer);
-        echo '</section>';
+        echo '</div></section>';
     }
 
     private function miscTab(MailerSettings $settings): void
@@ -371,7 +376,7 @@ final readonly class AdminPage
     /** @param array<string, string> $options */
     private function select(string $name, string $label, string $value, array $options): void
     {
-        echo '<label class="spm-field"><span>' . $this->esc($label) . '</span>';
+        echo '<label class="spm-field" data-field="' . $this->attr($name) . '"><span>' . $this->esc($label) . '</span>';
         echo '<select name="' . $this->attr($name) . '">';
         foreach ($options as $key => $optionLabel) {
             echo '<option value="' . $this->attr($key) . '"' . ($key === $value ? ' selected' : '') . '>';
