@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace SymPress\Mailer\Admin;
 
-use SymPress\Mailer\Application\TestEmailSender;
 use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Config\MailerSettings;
 use SymPress\Mailer\Config\SettingsRepositoryInterface;
@@ -16,22 +15,18 @@ use SymPress\Mailer\Secret\SecretFields;
 use SymPress\Mailer\Support\WordPressArray;
 use SymPress\Mailer\Validation\ConnectionHealthCheckerInterface;
 use SymPress\Mailer\Validation\ConnectionValidatorInterface;
-use SymPress\Mailer\Validation\SmtpConnectionProbe;
 
-// phpcs:ignore SymPress.Classes.ClassLength.TooLong -- Tools actions share the private nonce, redirect and Pro guards here; splitting the Tools screen out is a separate refactor.
 final readonly class AdminPage
 {
-    private const string SLUG = 'sympress-mailer';
-    private const string PRO_ENTRY = 'mailer-pro/mailer-pro.php';
+    use AdminScreenHelpers;
 
     public function __construct(
         private SettingsRepositoryInterface $settingsRepository,
-        private TestEmailSender $testEmailSender,
         private ProviderRegistryInterface $providers,
         private ConnectionValidatorInterface $validator,
         private ConnectionHealthCheckerInterface $healthChecker,
         private ConnectionImportService $imports,
-        private SmtpConnectionProbe $connectionProbe,
+        private ToolsPage $toolsPage,
     ) {
     }
 
@@ -66,7 +61,7 @@ final readonly class AdminPage
             __('Tools', 'sympress-mailer'),
             SettingsScope::network() ? 'manage_network_options' : 'manage_options',
             self::SLUG . '-tools',
-            $this->renderTest(...),
+            $this->toolsPage->renderTest(...),
         );
     }
 
@@ -103,57 +98,6 @@ final readonly class AdminPage
 
         echo '<p><button type="submit" class="button button-primary">' . esc_html__('Save Settings', 'sympress-mailer') . '</button></p>';
         echo '</form>';
-        $this->chromeEnd();
-    }
-
-    public function renderTest(): void
-    {
-        if ($this->proPluginActive()) {
-            return;
-        }
-
-        $this->assertCapability();
-        $settings = $this->settingsRepository->get();
-
-        $this->chromeStart(__('Tools', 'sympress-mailer'), $settings);
-
-        $status = WordPressArray::string(WordPressArray::get()['sympress_mailer_test'] ?? '');
-        if ($status === 'sent') {
-            echo '<div class="notice notice-success inline"><p>' . esc_html__('Test email sent.', 'sympress-mailer') . '</p></div>';
-        } elseif ($status !== '') {
-            $reason = function_exists('get_transient') ? get_transient($this->testFailureKey()) : false;
-            $message = __('Test email failed.', 'sympress-mailer');
-
-            if (is_string($reason) && $reason !== '') {
-                delete_transient($this->testFailureKey());
-                /* translators: %s: the reason the test email failed, e.g. a server error message. */
-                $message = sprintf(__('Test email failed: %s', 'sympress-mailer'), $reason);
-            }
-
-            echo '<div class="notice notice-error inline"><p>' . $this->esc($message) . '</p></div>';
-        }
-
-        $this->connectionCheckNotice();
-
-        echo '<section class="spm-section">';
-        echo '<h2>' . esc_html__('Email Test', 'sympress-mailer') . '</h2>';
-        echo '<form method="post" action="' . $this->attr($this->adminPostUrl()) . '">';
-        echo '<input type="hidden" name="action" value="sympress_mailer_send_test">';
-        $this->nonce('sympress_mailer_send_test');
-        $this->input('to', __('Recipient', 'sympress-mailer'), $this->defaultRecipient(), 'email');
-        echo '<p><button type="submit" class="button button-primary">' . esc_html__('Send Test Email', 'sympress-mailer') . '</button></p>';
-        echo '</form>';
-        echo '</section>';
-
-        echo '<section class="spm-section">';
-        echo '<h2>' . esc_html__('Connection Check', 'sympress-mailer') . '</h2>';
-        echo '<p class="description">' . esc_html__('Connects to the SMTP server and logs in without sending an email.', 'sympress-mailer') . '</p>';
-        echo '<form method="post" action="' . $this->attr($this->adminPostUrl()) . '">';
-        echo '<input type="hidden" name="action" value="sympress_mailer_check_connection">';
-        $this->nonce('sympress_mailer_check_connection');
-        echo '<p><button type="submit" class="button">' . esc_html__('Check Connection', 'sympress-mailer') . '</button></p>';
-        echo '</form>';
-        echo '</section>';
         $this->chromeEnd();
     }
 
@@ -197,52 +141,6 @@ final readonly class AdminPage
         }
 
         $this->redirect(self::SLUG, $args);
-    }
-
-    public function sendTest(): void
-    {
-        if ($this->proPluginActive()) {
-            return;
-        }
-
-        $this->assertCapability();
-        $this->checkNonce('sympress_mailer_send_test');
-
-        $to = WordPressArray::string(WordPressArray::post()['to'] ?? '');
-        [$result, $reason] = $to !== '' ? $this->testEmailSender->sendWithFailureReason($to) : [null, ''];
-        $status = $result?->accepted === true ? 'sent' : 'failed';
-
-        if (function_exists('set_transient')) {
-            if ($status === 'failed' && $reason !== '') {
-                set_transient($this->testFailureKey(), $reason, 60);
-            } else {
-                delete_transient($this->testFailureKey());
-            }
-        }
-
-        $this->redirect(self::SLUG . '-tools', ['sympress_mailer_test' => $status]);
-    }
-
-    public function checkConnection(): void
-    {
-        if ($this->proPluginActive()) {
-            return;
-        }
-
-        $this->assertCapability();
-        $this->checkNonce('sympress_mailer_check_connection');
-
-        $health = $this->connectionProbe->probe($this->settingsRepository->get()->defaultConnection());
-
-        if (function_exists('set_transient')) {
-            set_transient($this->connectionCheckKey(), [
-                'healthy' => $health->healthy,
-                'checked' => ($health->context['checked'] ?? true) !== false,
-                'message' => $health->message,
-            ], 60);
-        }
-
-        $this->redirect(self::SLUG . '-tools', ['sympress_mailer_check' => '1']);
     }
 
     public function importConnection(): void
@@ -404,22 +302,6 @@ final readonly class AdminPage
         );
     }
 
-    private function chromeStart(string $title, MailerSettings $settings): void
-    {
-        echo '<div class="wrap sympress-mailer">';
-        echo '<section class="spm-section spm-hero">';
-        echo '<div><h1>' . esc_html__('SymPress Mailer', 'sympress-mailer') . '</h1><p>' . esc_html__('Symfony Mailer delivery for WordPress.', 'sympress-mailer') . '</p></div>';
-        echo '<span class="spm-status ' . ($settings->enabled ? 'is-on' : 'is-off') . '">';
-        echo $settings->enabled ? __('Enabled', 'sympress-mailer') : __('Disabled', 'sympress-mailer');
-        echo '</span></section>';
-        echo '<section class="spm-section spm-page-title"><h2>' . $this->esc($title) . '</h2></section>';
-    }
-
-    private function chromeEnd(): void
-    {
-        echo '</div>';
-    }
-
     private function tabs(string $current): void
     {
         echo '<nav class="nav-tab-wrapper spm-tabs" aria-label="Mailer settings tabs">';
@@ -479,30 +361,6 @@ final readonly class AdminPage
         return '<span class="spm-provider-logo" aria-hidden="true">' . $this->esc($logo) . '</span>';
     }
 
-    private function switchRow(string $name, string $label, bool $checked): void
-    {
-        echo '<label class="spm-switch-row"><span>' . $this->esc($label) . '</span><span class="spm-switch">';
-        echo '<input type="checkbox" name="' . $this->attr($name) . '" value="1"' . ($checked ? ' checked' : '') . '>';
-        echo '<span></span></span></label>';
-    }
-
-    private function input(string $name, string $label, string $value, string $type = 'text'): void
-    {
-        $secret = SecretFields::isSecret(SecretFields::fieldName($name));
-        if ($secret) {
-            $value = '';
-            $type = 'password';
-        }
-        echo '<label class="spm-field"><span>' . $this->esc($label) . '</span>';
-        echo '<input type="' . $this->attr($type) . '" name="' . $this->attr($name) . '" value="' . $this->attr($value) . '">';
-        echo '</label>';
-        if (!$secret) {
-            return;
-        }
-
-        $this->switchRow(SecretFields::clearName($name), __('Clear stored secret', 'sympress-mailer'), false);
-    }
-
     /** @param array<string, string> $options */
     private function select(string $name, string $label, string $value, array $options): void
     {
@@ -513,20 +371,6 @@ final readonly class AdminPage
             echo $this->esc($optionLabel) . '</option>';
         }
         echo '</select></label>';
-    }
-
-    private function assertCapability(): void
-    {
-        SettingsScope::assertCapability();
-    }
-
-    private function checkNonce(string $action): void
-    {
-        if (!function_exists('check_admin_referer')) {
-            return;
-        }
-
-        check_admin_referer(isset(WordPressArray::post()['_sympress_scope']) ? SettingsScope::nonce($action) : $action);
     }
 
     private function failValidation(string $message): never
@@ -567,116 +411,5 @@ final readonly class AdminPage
         $options = $provider?->options[$field] ?? [];
 
         return is_array($options) ? $options : [];
-    }
-
-    private function nonce(string $action): void
-    {
-        if (!function_exists('wp_nonce_field')) {
-            return;
-        }
-
-        echo '<input type="hidden" name="_sympress_scope" value="' . (SettingsScope::network() ? 'network' : 'site') . '">';
-        wp_nonce_field(SettingsScope::nonce($action));
-    }
-
-    /** @param array<string, string> $args */
-    private function redirect(string $page, array $args = []): void
-    {
-        $url = $this->adminUrl('admin.php', ['page' => $page, ...$args]);
-
-        if (function_exists('wp_safe_redirect')) {
-            wp_safe_redirect($url);
-        } else {
-            header('Location: ' . $url);
-        }
-
-        exit;
-    }
-
-    /** @param array<string, string> $args */
-    private function adminUrl(string $path, array $args = []): string
-    {
-        $url = SettingsScope::network() && $path !== 'admin-post.php' && function_exists('network_admin_url') ? network_admin_url($path) : (function_exists('admin_url') ? admin_url($path) : '/wp-admin/' . ltrim($path, '/'));
-
-        return $args === []
-            ? $url
-            : $url . (str_contains($url, '?') ? '&' : '?') . http_build_query($args);
-    }
-
-    private function adminPostUrl(): string
-    {
-        return $this->adminUrl('admin-post.php');
-    }
-
-    private function testFailureKey(): string
-    {
-        return 'sympress_mailer_test_failure_' . (function_exists('get_current_user_id') ? get_current_user_id() : 0);
-    }
-
-    private function connectionCheckKey(): string
-    {
-        return 'sympress_mailer_connection_check_' . (function_exists('get_current_user_id') ? get_current_user_id() : 0);
-    }
-
-    private function connectionCheckNotice(): void
-    {
-        if (WordPressArray::string(WordPressArray::get()['sympress_mailer_check'] ?? '') === '' || !function_exists('get_transient')) {
-            return;
-        }
-
-        $check = get_transient($this->connectionCheckKey());
-
-        if (!is_array($check)) {
-            return;
-        }
-
-        delete_transient($this->connectionCheckKey());
-        $message = WordPressArray::string($check['message'] ?? '');
-
-        if (($check['checked'] ?? true) === false) {
-            echo '<div class="notice notice-info inline"><p>' . esc_html__('This connection type cannot be checked without sending. Send a test email instead.', 'sympress-mailer') . '</p></div>';
-        } elseif (($check['healthy'] ?? false) === true) {
-            /* translators: %s: the result reported by the mail server check. */
-            echo '<div class="notice notice-success inline"><p>' . $this->esc(sprintf(__('Connection check passed: %s', 'sympress-mailer'), $message)) . '</p></div>';
-        } else {
-            /* translators: %s: the reason the connection check failed, e.g. a server error message. */
-            echo '<div class="notice notice-error inline"><p>' . $this->esc(sprintf(__('Connection check failed: %s', 'sympress-mailer'), $message)) . '</p></div>';
-        }
-    }
-
-    private function defaultRecipient(): string
-    {
-        return function_exists('get_option') ? (string) get_option('admin_email', '') : '';
-    }
-
-    private function proPluginActive(): bool
-    {
-        if (!function_exists('get_option')) {
-            return false;
-        }
-
-        $active = get_option('active_plugins', []);
-
-        if (is_array($active) && in_array(self::PRO_ENTRY, $active, true)) {
-            return true;
-        }
-
-        if (!function_exists('is_multisite') || !is_multisite() || !function_exists('get_site_option')) {
-            return false;
-        }
-
-        $network = get_site_option('active_sitewide_plugins', []);
-
-        return is_array($network) && array_key_exists(self::PRO_ENTRY, $network);
-    }
-
-    private function esc(string $value): string
-    {
-        return function_exists('esc_html') ? esc_html($value) : htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-    }
-
-    private function attr(string $value): string
-    {
-        return function_exists('esc_attr') ? esc_attr($value) : htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
     }
 }

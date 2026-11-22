@@ -57,9 +57,12 @@ services:
             - { name: kernel.hook, hook: 'admin_menu', method: register }
             - { name: kernel.hook, hook: 'network_admin_menu', method: register }
             - { name: kernel.hook, hook: 'admin_post_sympress_mailer_save_settings', method: saveSettings }
+            - { name: kernel.hook, hook: 'admin_post_sympress_mailer_import_connection', method: importConnection }
+
+    SymPress\Mailer\Admin\ToolsPage:
+        tags:
             - { name: kernel.hook, hook: 'admin_post_sympress_mailer_send_test', method: sendTest }
             - { name: kernel.hook, hook: 'admin_post_sympress_mailer_check_connection', method: checkConnection }
-            - { name: kernel.hook, hook: 'admin_post_sympress_mailer_import_connection', method: importConnection }
 
     SymPress\Mailer\Hook\SiteHealthCheck:
         tags:
