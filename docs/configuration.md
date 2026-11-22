@@ -46,6 +46,13 @@ this is useful for local development and smoke tests.
 
 Use the Tools screen to send a test email with the active connection.
 
+For SMTP connections, the Tools screen also offers a connection check. It
+connects to the server, negotiates TLS and logs in with the saved credentials,
+then disconnects without sending mail; it stops waiting after about 10 seconds.
+It does not prove that mail is delivered or that the sender address is
+accepted, and API, native, sendmail and failover connections cannot be checked
+this way, so send a test email for those. The check never runs on save.
+
 ## Secret Storage and Upgrade
 
 Option credentials and credential-bearing DSNs use authenticated AES-256-GCM
