@@ -80,6 +80,7 @@ the admin screens lack their styles and scripts until the assets are built.
 - [Hooks](docs/hooks.md)
 - [Backward compatibility](docs/stability.md)
 - [Development](docs/development.md)
+- [1.0.0 release notes](docs/releases/1.0.0.md)
 
 ## Quality Checks
 
