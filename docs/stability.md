@@ -55,6 +55,9 @@ Breaking changes to these only happen in a major release:
   - `Support\Json`
   - `Support\WordPressArray`
   - `Support\FailureReason`
+  - `Validation\SmtpConnectionProbe::probe()`, including the `checked` key of
+    the returned health context: `false` when the connection type cannot be
+    checked without sending
 
 ## Internal
 
@@ -70,7 +73,6 @@ These may change in any release:
   on.
 - `Transport\DsnFactory`, `Transport\ProviderApiTransport` and
   `Transport\ProviderApiTransportFactory`.
-- `Validation\SmtpConnectionProbe`.
 - Admin HTML, CSS classes and `data-*` attributes, and the wording of messages.
 - Constructor signatures of autowired services. Obtain services from the
   container instead of constructing them.
