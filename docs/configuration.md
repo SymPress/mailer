@@ -205,7 +205,9 @@ log ID, the caught `Throwable`, the `WordPressMail` and the `ConnectionConfig`
 used. The exception message may contain provider or server response text, such
 as host names or addresses, so listeners must treat it as sensitive. The plugin
 logs nothing itself; the Tools screen uses this action to show the reason for a
-failed test email, with the connection's credentials replaced by `***`.
+failed test email, with the connection's credentials replaced by `***`. A site
+administrator whose site inherits the network option sees only the generic
+failure notice, because the reason could reveal network settings they cannot view.
 
 Admin strings use the `sympress-mailer` text domain; the POT template is in
 `languages/`. Existing explicit body-retention choices are preserved; new
