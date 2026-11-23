@@ -38,6 +38,15 @@ final class FailureReasonTest extends TestCase
         self::assertSame('401 for key ***; AUTH failed for *** with *** or ***', $reason);
     }
 
+    public function testUsernameDomainAndTenantIdAreReplaced(): void
+    {
+        $connection = new ConnectionConfig(id: 'primary', username: 'mail user@example.test', domain: 'mg.example.test', tenantId: 'tenant-canary');
+
+        $reason = FailureReason::redact('535 for mail user@example.test or mail%20user%40example.test on mg.example.test in tenant-canary', $connection);
+
+        self::assertSame('535 for *** or *** on *** in ***', $reason);
+    }
+
     public function testMessageIsCollapsedToOneLineAndCapped(): void
     {
         $reason = FailureReason::redact("  first\r\n\tsecond  " . str_repeat('x', 400), new ConnectionConfig(id: 'primary'));
