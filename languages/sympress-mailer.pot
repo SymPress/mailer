@@ -1,288 +1,272 @@
+# Copyright (C) 2026 Brian Schaeffner
+# This file is distributed under the GPL-2.0-or-later.
 msgid ""
 msgstr ""
-"Project-Id-Version: sympress-mailer\n"
+"Project-Id-Version: SymPress Mailer 1.0.1\n"
+"Report-Msgid-Bugs-To: https://github.com/SymPress/mailer/issues\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-11-23T00:11:51+00:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.12.0\n"
+"X-Domain: sympress-mailer\n"
 
-#. translators: %s: the mail provider name, e.g. "Postmark".
-#: src/Admin/AdminPage.php:357
-msgid "%s setup documentation"
+#. Plugin Name of the plugin
+#: mailer.php:4
+#: src/Admin/AdminPage.php:40
+#: src/Admin/AdminScreenHelpers.php:22
+msgid "SymPress Mailer"
 msgstr ""
 
-#: src/Admin/AdminPage.php:256
-msgid "API Key"
+#. Description of the plugin
+#: mailer.php:5
+msgid "Symfony Mailer powered SMTP and provider delivery for WordPress."
 msgstr ""
 
-#: src/Admin/AdminPage.php:257
-msgid "API Secret"
+#. Author of the plugin
+#: mailer.php:9
+msgid "Brian Schaeffner"
 msgstr ""
 
-#: src/Admin/AdminPage.php:272
-msgid "Auto TLS"
-msgstr ""
-
-#: src/Admin/ToolsPage.php:69
-msgid "Check Connection"
-msgstr ""
-
-#: src/Admin/AdminScreenHelpers.php:55
-msgid "Clear stored secret"
-msgstr ""
-
-#: src/Admin/ToolsPage.php:64
-msgid "Connection Check"
-msgstr ""
-
-#. translators: %s: the reason the connection check failed, e.g. a server error message.
-#: src/Admin/ToolsPage.php:153
-msgid "Connection check failed: %s"
-msgstr ""
-
-#. translators: %s: the result reported by the mail server check.
-#: src/Admin/ToolsPage.php:150
-msgid "Connection check passed: %s"
-msgstr ""
-
-#: src/Admin/AdminPage.php:405
-msgid "Connection health check passed."
-msgstr ""
-
-#: src/Admin/ToolsPage.php:65
-msgid "Connects to the SMTP server and logs in without sending an email."
-msgstr ""
-
-#: src/Admin/AdminPage.php:282
-msgid "Delete Settings on Uninstall"
-msgstr ""
-
-#: src/Admin/AdminScreenHelpers.php:24
-msgid "Disabled"
-msgstr ""
-
-#: src/Admin/AdminPage.php:281
-msgid "Do Not Send"
-msgstr ""
-
-#: src/Hook/SiteHealthCheck.php:53
-msgid "Do Not Send is enabled"
-msgstr ""
-
-#: src/Admin/AdminPage.php:258
-msgid "Domain"
-msgstr ""
-
-#: src/Hook/SiteHealthCheck.php:84
-msgid "Email"
-msgstr ""
-
-#: src/Admin/ToolsPage.php:54
-msgid "Email Test"
-msgstr ""
-
-#: src/Hook/SiteHealthCheck.php:53
-msgid "Emails are accepted but not delivered to anyone."
-msgstr ""
-
-#: src/Hook/SiteHealthCheck.php:66
-msgid "Emails are routed through SymPress Mailer"
-msgstr ""
-
-#. translators: %s: the mail provider name, e.g. "Postmark".
-#: src/Hook/SiteHealthCheck.php:66
-msgid "Emails are sent with the %s connection."
-msgstr ""
-
-#: src/Hook/SiteHealthCheck.php:45
-msgid "Emails cannot be delivered because the stored mail credentials cannot be decrypted, for example after the encryption key was removed or changed. Restore the key or enter the credentials again."
-msgstr ""
-
-#: src/Hook/SiteHealthCheck.php:60
-msgid "Emails cannot be delivered until these connection settings are fixed:"
-msgstr ""
-
-#: src/Admin/AdminPage.php:231
-msgid "Enable Mailer"
-msgstr ""
-
-#: src/Admin/AdminScreenHelpers.php:24
-msgid "Enabled"
-msgstr ""
-
-#: src/Admin/AdminPage.php:245
-msgid "Encrypted option"
-msgstr ""
-
-#: src/Admin/AdminPage.php:255
-msgid "Encryption"
-msgstr ""
-
-#: src/Admin/AdminPage.php:245
-msgid "Environment / constants"
-msgstr ""
-
-#: src/Admin/AdminPage.php:269
-msgid "Force From Email"
-msgstr ""
-
-#: src/Admin/AdminPage.php:270
-msgid "Force From Name"
-msgstr ""
-
-#: src/Admin/AdminPage.php:267
-msgid "From Email"
-msgstr ""
-
-#: src/Admin/AdminPage.php:268
-msgid "From Name"
-msgstr ""
-
-#: src/Admin/AdminPage.php:371
-msgid "General"
-msgstr ""
-
-#: src/Admin/AdminPage.php:371
-msgid "Import"
-msgstr ""
-
-#: src/Admin/AdminPage.php:309
-msgid "Import Connection"
-msgstr ""
-
-#: src/Admin/AdminPage.php:291
-msgid "Import Existing SMTP Settings"
-msgstr ""
-
-#. translators: %s: the import source, e.g. "wp-mail-smtp".
-#: src/Admin/AdminPage.php:337
-msgid "Imported settings from %s."
-msgstr ""
-
-#: src/Admin/AdminPage.php:245
-msgid "Kernel config / filter"
-msgstr ""
-
-#: src/Admin/AdminPage.php:43
+#: src/Admin/AdminPage.php:41
 msgid "Mailer"
 msgstr ""
 
-#: src/Admin/AdminPage.php:299
-msgid "Mailer settings tabs"
-msgstr ""
-
-#: src/Admin/AdminPage.php:280 src/Admin/AdminPage.php:368
-msgid "Misc"
-msgstr ""
-
-#: src/Admin/AdminPage.php:206
-msgid "No importable mailer connection was found for this source."
-msgstr ""
-
-#: src/Admin/AdminPage.php:294
-msgid "No supported SMTP plugin settings were detected. Supported import sources are Fluent SMTP, WP Mail SMTP, Easy WP SMTP and Post SMTP."
-msgstr ""
-
-#: src/Admin/AdminPage.php:255
-msgid "None"
-msgstr ""
-
-#: src/Hook/SiteHealthCheck.php:86
-msgid "Open the mailer settings"
-msgstr ""
-
-#: src/Admin/AdminPage.php:254
-msgid "Password"
-msgstr ""
-
-#: src/Admin/AdminPage.php:328
-msgid "Passwords and keys are never kept from a rejected submission. Enter new ones again; blank fields keep the stored values."
-msgstr ""
-
-#: src/Admin/AdminPage.php:230
-msgid "Primary Connection"
-msgstr ""
-
-#: src/Admin/ToolsPage.php:58
-msgid "Recipient"
-msgstr ""
-
-#: src/Admin/AdminPage.php:262 src/Admin/AdminPage.php:261
-msgid "Region"
-msgstr ""
-
-#: src/Admin/AdminPage.php:251
-msgid "SMTP Host"
-msgstr ""
-
-#: src/Admin/AdminPage.php:252
-msgid "SMTP Port"
-msgstr ""
-
-#: src/Admin/AdminPage.php:200
-msgid "SSL"
-msgstr ""
-
-#: src/Admin/AdminPage.php:101
-msgid "Save Settings"
-msgstr ""
-
-#: src/Admin/AdminPage.php:246
-msgid "Secret Prefix"
-msgstr ""
-
-#: src/Admin/AdminPage.php:245
-msgid "Secret Source"
-msgstr ""
-
-#: src/Admin/ToolsPage.php:59
-msgid "Send Test Email"
-msgstr ""
-
-#: src/Admin/AdminPage.php:271
-msgid "Set Return-Path"
-msgstr ""
-
-#: src/Admin/AdminPage.php:53 src/Admin/AdminPage.php:54 src/Admin/AdminPage.php:80
+#: src/Admin/AdminPage.php:51
+#: src/Admin/AdminPage.php:52
+#: src/Admin/AdminPage.php:79
 msgid "Settings"
 msgstr ""
 
-#: src/Admin/AdminPage.php:392
-msgid "Settings saved."
+#: src/Admin/AdminPage.php:60
+#: src/Admin/AdminPage.php:61
+#: src/Admin/ToolsPage.php:33
+msgid "Tools"
+msgstr ""
+
+#: src/Admin/AdminPage.php:100
+msgid "Save Settings"
+msgstr ""
+
+#: src/Admin/AdminPage.php:157
+msgid "No importable mailer connection was found for this source."
+msgstr ""
+
+#: src/Admin/AdminPage.php:178
+msgid "Primary Connection"
+msgstr ""
+
+#: src/Admin/AdminPage.php:179
+msgid "Enable Mailer"
 msgstr ""
 
 #: src/Admin/AdminPage.php:194
 msgid "Show all fields"
 msgstr ""
 
-#: src/Admin/AdminPage.php:40 src/Admin/AdminScreenHelpers.php:22
-msgid "SymPress Mailer"
+#: src/Admin/AdminPage.php:195
+msgid "Secret Source"
 msgstr ""
 
-#: src/Hook/SiteHealthCheck.php:31
-msgid "SymPress Mailer delivery"
+#: src/Admin/AdminPage.php:195
+msgid "Encrypted option"
 msgstr ""
 
-#: src/Hook/SiteHealthCheck.php:49
-msgid "SymPress Mailer is disabled"
+#: src/Admin/AdminPage.php:195
+msgid "Environment / constants"
 msgstr ""
 
-#: src/Admin/AdminPage.php:480
-msgid "SymPress Mailer validation failed"
+#: src/Admin/AdminPage.php:195
+msgid "wp-config.php constants"
 msgstr ""
 
-#: src/Admin/AdminPage.php:250
+#: src/Admin/AdminPage.php:195
+msgid "Kernel config / filter"
+msgstr ""
+
+#: src/Admin/AdminPage.php:196
+msgid "Secret Prefix"
+msgstr ""
+
+#: src/Admin/AdminPage.php:198
+msgid "When a password, API key or DSN comes from this external source, the DSN, host, port, encryption and TLS settings are read from the same source and the values below are ignored. Without an external host, the provider's default endpoint is used."
+msgstr ""
+
+#: src/Admin/AdminPage.php:200
 msgid "Symfony DSN"
+msgstr ""
+
+#: src/Admin/AdminPage.php:201
+msgid "SMTP Host"
+msgstr ""
+
+#: src/Admin/AdminPage.php:202
+msgid "SMTP Port"
+msgstr ""
+
+#: src/Admin/AdminPage.php:203
+msgid "Username"
+msgstr ""
+
+#: src/Admin/AdminPage.php:204
+msgid "Password"
+msgstr ""
+
+#: src/Admin/AdminPage.php:205
+msgid "Encryption"
+msgstr ""
+
+#: src/Admin/AdminPage.php:205
+msgid "TLS"
+msgstr ""
+
+#: src/Admin/AdminPage.php:205
+msgid "SSL"
+msgstr ""
+
+#: src/Admin/AdminPage.php:205
+msgid "None"
+msgstr ""
+
+#: src/Admin/AdminPage.php:206
+msgid "API Key"
+msgstr ""
+
+#: src/Admin/AdminPage.php:207
+msgid "API Secret"
+msgstr ""
+
+#: src/Admin/AdminPage.php:208
+msgid "Domain"
+msgstr ""
+
+#: src/Admin/AdminPage.php:212
+#: src/Admin/AdminPage.php:214
+msgid "Region"
+msgstr ""
+
+#: src/Admin/AdminPage.php:216
+msgid "Tenant ID"
+msgstr ""
+
+#: src/Admin/AdminPage.php:217
+msgid "From Email"
+msgstr ""
+
+#: src/Admin/AdminPage.php:218
+msgid "From Name"
+msgstr ""
+
+#: src/Admin/AdminPage.php:219
+msgid "Force From Email"
+msgstr ""
+
+#: src/Admin/AdminPage.php:220
+msgid "Force From Name"
+msgstr ""
+
+#: src/Admin/AdminPage.php:221
+msgid "Set Return-Path"
+msgstr ""
+
+#: src/Admin/AdminPage.php:222
+msgid "Auto TLS"
+msgstr ""
+
+#: src/Admin/AdminPage.php:223
+msgid "Verify TLS Peer"
+msgstr ""
+
+#: src/Admin/AdminPage.php:230
+#: src/Admin/AdminPage.php:305
+msgid "Misc"
+msgstr ""
+
+#: src/Admin/AdminPage.php:231
+msgid "Do Not Send"
+msgstr ""
+
+#: src/Admin/AdminPage.php:232
+msgid "Delete Settings on Uninstall"
+msgstr ""
+
+#: src/Admin/AdminPage.php:241
+msgid "Import Existing SMTP Settings"
+msgstr ""
+
+#: src/Admin/AdminPage.php:244
+msgid "No supported SMTP plugin settings were detected. Supported import sources are Fluent SMTP, WP Mail SMTP, Easy WP SMTP and Post SMTP."
+msgstr ""
+
+#: src/Admin/AdminPage.php:259
+msgid "Import Connection"
+msgstr ""
+
+#: src/Admin/AdminPage.php:304
+msgid "Mailer settings tabs"
+msgstr ""
+
+#: src/Admin/AdminPage.php:305
+msgid "General"
+msgstr ""
+
+#: src/Admin/AdminPage.php:305
+msgid "Import"
+msgstr ""
+
+#: src/Admin/AdminPage.php:327
+msgid "The settings were not saved:"
+msgstr ""
+
+#: src/Admin/AdminPage.php:333
+msgid "Passwords and keys are never kept from a rejected submission. Enter new ones again; blank fields keep the stored values."
+msgstr ""
+
+#: src/Admin/AdminPage.php:339
+msgid "Settings saved."
+msgstr ""
+
+#. translators: %s: the import source, e.g. "wp-mail-smtp".
+#: src/Admin/AdminPage.php:346
+#, php-format
+msgid "Imported settings from %s."
+msgstr ""
+
+#: src/Admin/AdminPage.php:353
+msgid "Connection health check passed."
+msgstr ""
+
+#. translators: %s: the mail provider name, e.g. "Postmark".
+#: src/Admin/AdminPage.php:366
+#, php-format
+msgid "%s setup documentation"
+msgstr ""
+
+#: src/Admin/AdminPage.php:391
+msgid "SymPress Mailer validation failed"
 msgstr ""
 
 #: src/Admin/AdminScreenHelpers.php:22
 msgid "Symfony Mailer delivery for WordPress."
 msgstr ""
 
-#: src/Admin/AdminPage.php:200
-msgid "TLS"
+#: src/Admin/AdminScreenHelpers.php:24
+msgid "Enabled"
 msgstr ""
 
-#: src/Admin/AdminPage.php:266
-msgid "Tenant ID"
+#: src/Admin/AdminScreenHelpers.php:24
+msgid "Disabled"
+msgstr ""
+
+#: src/Admin/AdminScreenHelpers.php:55
+msgid "Clear stored secret"
+msgstr ""
+
+#: src/Admin/ToolsPage.php:37
+msgid "Test email sent."
 msgstr ""
 
 #: src/Admin/ToolsPage.php:40
@@ -291,49 +275,101 @@ msgstr ""
 
 #. translators: %s: the reason the test email failed, e.g. a server error message.
 #: src/Admin/ToolsPage.php:45
+#, php-format
 msgid "Test email failed: %s"
 msgstr ""
 
-#: src/Admin/ToolsPage.php:37
-msgid "Test email sent."
+#: src/Admin/ToolsPage.php:54
+msgid "Email Test"
 msgstr ""
 
-#: src/Hook/SiteHealthCheck.php:60
-msgid "The mail connection is invalid"
+#: src/Admin/ToolsPage.php:58
+msgid "Recipient"
 msgstr ""
 
-#: src/Hook/SiteHealthCheck.php:45
-msgid "The mailer settings cannot be read"
+#: src/Admin/ToolsPage.php:59
+msgid "Send Test Email"
 msgstr ""
 
-#: src/Admin/AdminPage.php:322
-msgid "The settings were not saved:"
+#: src/Admin/ToolsPage.php:64
+msgid "Connection Check"
+msgstr ""
+
+#: src/Admin/ToolsPage.php:65
+msgid "Connects to the SMTP server and logs in without sending an email."
+msgstr ""
+
+#: src/Admin/ToolsPage.php:69
+msgid "Check Connection"
 msgstr ""
 
 #: src/Admin/ToolsPage.php:147
 msgid "This connection type cannot be checked without sending. Send a test email instead."
 msgstr ""
 
-#: src/Admin/AdminPage.php:62 src/Admin/AdminPage.php:63 src/Admin/ToolsPage.php:33
-msgid "Tools"
+#. translators: %s: the result reported by the mail server check.
+#: src/Admin/ToolsPage.php:150
+#, php-format
+msgid "Connection check passed: %s"
 msgstr ""
 
-#: src/Admin/AdminPage.php:253
-msgid "Username"
+#. translators: %s: the reason the connection check failed, e.g. a server error message.
+#: src/Admin/ToolsPage.php:153
+#, php-format
+msgid "Connection check failed: %s"
 msgstr ""
 
-#: src/Admin/AdminPage.php:273
-msgid "Verify TLS Peer"
+#: src/Hook/SiteHealthCheck.php:31
+msgid "SymPress Mailer delivery"
 msgstr ""
 
-#: src/Admin/AdminPage.php:248
-msgid "When a password, API key or DSN comes from this external source, the DSN, host, port, encryption and TLS settings are read from the same source and the values below are ignored. Without an external host, the provider's default endpoint is used."
+#: src/Hook/SiteHealthCheck.php:45
+msgid "The mailer settings cannot be read"
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:45
+msgid "Emails cannot be delivered because the stored mail credentials cannot be decrypted, for example after the encryption key was removed or changed. Restore the key or enter the credentials again."
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:49
+msgid "SymPress Mailer is disabled"
 msgstr ""
 
 #: src/Hook/SiteHealthCheck.php:49
 msgid "WordPress sends emails with its default mail function instead of the configured connection."
 msgstr ""
 
-#: src/Admin/AdminPage.php:190
-msgid "wp-config.php constants"
+#: src/Hook/SiteHealthCheck.php:53
+msgid "Do Not Send is enabled"
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:53
+msgid "Emails are accepted but not delivered to anyone."
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:60
+msgid "The mail connection is invalid"
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:60
+msgid "Emails cannot be delivered until these connection settings are fixed:"
+msgstr ""
+
+#. translators: %s: the mail provider name, e.g. "Postmark".
+#: src/Hook/SiteHealthCheck.php:66
+msgid "Emails are routed through SymPress Mailer"
+msgstr ""
+
+#. translators: %s: the mail provider name, e.g. "Postmark".
+#: src/Hook/SiteHealthCheck.php:66
+#, php-format
+msgid "Emails are sent with the %s connection."
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:84
+msgid "Email"
+msgstr ""
+
+#: src/Hook/SiteHealthCheck.php:86
+msgid "Open the mailer settings"
 msgstr ""

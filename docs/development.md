@@ -41,6 +41,18 @@ npm run typecheck
 `tests/Unit`. `composer qa` runs the coding standards, static analysis and unit
 suite in one go.
 
+## Translation Template
+
+`languages/sympress-mailer.pot` is generated, not edited by hand. After changing
+a translatable string, regenerate it with WP-CLI's i18n command from the
+package root:
+
+```sh
+wp i18n make-pot . languages/sympress-mailer.pot --slug=mailer \
+  --domain=sympress-mailer --exclude=vendor,node_modules,tests,assets,Resources \
+  --headers='{"Report-Msgid-Bugs-To":"https://github.com/SymPress/mailer/issues"}'
+```
+
 ## Native Provider Recording
 
 `composer tests:recording` exercises ToSend and SMTP2GO with Symfony's native
