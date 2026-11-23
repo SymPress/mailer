@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 1.1.1 — 2026-11-23
+
+- Security: failure reasons of a test email or connection check (Tools screen, `mailer:test`, `mailer:status --probe`) now also mask the connection's username, domain and tenant ID, not only the DSN, password and API keys.
+- Security: on multisite, a site administrator whose site inherits the network settings no longer sees the network connection's error details when a test email fails; the Tools screen shows the generic failure notice instead.
+
 ## 1.1.0 — 2026-11-23
 
 - New: `Validation\SmtpConnectionProbe::probe()` is now part of the [stable surface](docs/stability.md), so an extension with its own Tools screen can offer the connection check. The `checked` key of the returned health context is part of that promise.
