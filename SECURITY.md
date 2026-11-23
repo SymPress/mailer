@@ -8,7 +8,7 @@ Security fixes are provided for the latest released version of this package.
 
 Please do not open public issues for suspected security vulnerabilities.
 
-Report vulnerabilities by emailing `brian.schaeffner@sympress.de` with:
+Report vulnerabilities by emailing `brian.schaeffner@sympress.io` with:
 
 - A description of the issue and its impact
 - Steps to reproduce or a minimal proof of concept
