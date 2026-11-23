@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 1.0.1 — 2026-11-23
+
+- Translations: `languages/sympress-mailer.pot` is now generated with `wp i18n make-pot` instead of being edited by hand. Source references are correct again and the plugin header strings (description, author) are included; no existing string changed.
+
 ## 1.0.0 — 2026-11-23
 
 - First stable release. No code changes since 0.7.1.
