@@ -73,8 +73,9 @@ wp console mailer:status --probe
 
 `mailer:test <to>` sends the Tools screen's test email. It prints the status:
 `sent`, `suppressed` (Do not send is on, nothing was delivered) or `queued`
-(accepted for later delivery). A failed send prints the reason with credentials
-replaced by `***`. Exit codes: `0` accepted, `1` failed, `2` invalid address
+(accepted for later delivery; when an extension queued it after a failed
+attempt, the reason of that attempt follows). A failed send prints the reason
+with credentials replaced by `***`. Exit codes: `0` accepted, `1` failed, `2` invalid address
 (nothing is sent).
 
 `mailer:status` prints the delivery settings as seen at runtime: enabled, Do

@@ -52,7 +52,10 @@ final class MailerTestCommand extends Command
 
         $output->writeln(match ($result->status) {
             'suppressed' => '<comment>Status: suppressed. "Do not send" is on, so the test email was accepted but NOT delivered.</comment>',
-            'queued' => '<comment>Status: queued. The test email was accepted for later delivery and has NOT been sent yet.</comment>',
+            'queued' => sprintf(
+                '<comment>Status: queued. The test email was accepted for later delivery and has NOT been sent yet.%s</comment>',
+                $reason !== '' ? ' The last attempt failed: ' . OutputFormatter::escape($reason) : '',
+            ),
             default => sprintf('<info>Status: %s. Test email sent to %s.</info>', OutputFormatter::escape($result->status), OutputFormatter::escape($to)),
         });
 

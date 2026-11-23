@@ -62,6 +62,7 @@ final readonly class TestEmailSender
             }
         }
 
-        return [$result, $result->accepted ? '' : $reason];
+        // An extension may queue a failed attempt for a retry: accepted, yet nothing was delivered.
+        return [$result, !$result->accepted || $result->status === 'queued' ? $reason : ''];
     }
 }
