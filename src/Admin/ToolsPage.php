@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace SymPress\Mailer\Admin;
 
 use SymPress\Mailer\Application\TestEmailSender;
+use SymPress\Mailer\Config\DeliverySettings;
 use SymPress\Mailer\Config\SettingsRepositoryInterface;
 use SymPress\Mailer\Support\WordPressArray;
 use SymPress\Mailer\Validation\SmtpConnectionProbe;
@@ -84,6 +85,11 @@ final readonly class ToolsPage
         $to = WordPressArray::string(WordPressArray::post()['to'] ?? '');
         [$result, $reason] = $to !== '' ? $this->testEmailSender->sendWithFailureReason($to) : [null, ''];
         $status = $result?->accepted === true ? 'sent' : 'failed';
+
+        // A site admin must not see errors from inherited network settings they cannot view.
+        if ($reason !== '' && DeliverySettings::read($this->settingsRepository)->toArray() !== $this->settingsRepository->get()->toArray()) {
+            $reason = '';
+        }
 
         if (function_exists('set_transient')) {
             if ($status === 'failed' && $reason !== '') {
