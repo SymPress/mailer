@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace SymPress\Mailer\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
+use SymPress\Mailer\Application\MailerInterface;
 use SymPress\Mailer\Application\MailerService;
 use SymPress\Mailer\Application\TestEmailSender;
+use SymPress\Mailer\Config\ConnectionConfig;
 use SymPress\Mailer\Config\MailerSettings;
 use SymPress\Mailer\Config\SettingsRepositoryInterface;
 use SymPress\Mailer\Console\MailerStatusCommand;
@@ -14,6 +16,7 @@ use SymPress\Mailer\Console\MailerTestCommand;
 use SymPress\Mailer\Message\DefaultAttachmentPolicy;
 use SymPress\Mailer\Message\NullEmailBodyProcessor;
 use SymPress\Mailer\Message\SymfonyEmailFactory;
+use SymPress\Mailer\Message\WordPressMail;
 use SymPress\Mailer\Provider\DefaultProviderRegistry;
 use SymPress\Mailer\Secret\EnvironmentConnectionSecretResolver;
 use SymPress\Mailer\Transport\DsnFactory;
@@ -21,6 +24,7 @@ use SymPress\Mailer\Transport\ProviderApiTransportFactory;
 use SymPress\Mailer\Transport\SymfonyMailerFactory;
 use SymPress\Mailer\Validation\DefaultConnectionValidator;
 use SymPress\Mailer\Validation\SmtpConnectionProbe;
+use SymPress\Mailer\Value\SendResult;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Mailer\Exception\TransportException;
@@ -78,6 +82,23 @@ final class ConsoleCommandsTest extends TestCase
         self::assertSame(Command::FAILURE, $tester->execute(['to' => 'ada@example.test']));
         self::assertStringContainsString('Test email failed: Authentication failed with password "***" on "smtp.example.test:587".', $tester->getDisplay());
         self::assertStringNotContainsString('test-canary', $tester->getDisplay());
+    }
+
+    public function testTestCommandPrintsTheReasonOfAnAttemptThatAnExtensionQueuedForARetry(): void
+    {
+        $mailer = new class implements MailerInterface {
+            public function send(WordPressMail $mail): SendResult
+            {
+                $connection = ConnectionConfig::fromArray(['provider' => 'smtp', 'password' => 'test-canary']);
+                do_action('sympress_mailer_delivery_failed', 'log-1', new TransportException('Rejected password "test-canary".'), $mail, $connection);
+
+                return SendResult::queued('log-1', 'transport_retry');
+            }
+        };
+        $tester = new CommandTester(new MailerTestCommand(new TestEmailSender($mailer, new EnvironmentConnectionSecretResolver())));
+
+        self::assertSame(Command::SUCCESS, $tester->execute(['to' => 'ada@example.test']));
+        self::assertStringContainsString('has NOT been sent yet. The last attempt failed: Rejected password "***".', $tester->getDisplay());
     }
 
     public function testStatusCommandReportsAValidConfiguration(): void
