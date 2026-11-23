@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 where applicable.
 
+## 1.1.0 — 2026-11-23
+
+- New: `Validation\SmtpConnectionProbe::probe()` is now part of the [stable surface](docs/stability.md), so an extension with its own Tools screen can offer the connection check. The `checked` key of the returned health context is part of that promise.
+- Fix: `TestEmailSender::sendWithFailureReason()` keeps the reason when an extension queued the failed attempt for a retry. Such a result counts as accepted, so the cause was dropped and `wp console mailer:test` printed only "queued"; it now adds the reason of the last attempt. The exit code stays `0`.
+
 ## 1.0.1 — 2026-11-23
 
 - Translations: `languages/sympress-mailer.pot` is now generated with `wp i18n make-pot` instead of being edited by hand. Source references are correct again and the plugin header strings (description, author) are included; no existing string changed.
